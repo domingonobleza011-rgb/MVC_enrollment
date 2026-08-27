@@ -240,6 +240,8 @@
         .upload-area:hover, .upload-area.dragover {
             background: #dceef9;
         }
+        .doc-slot .upload-area { padding: 0.9rem; cursor: pointer; }
+        .doc-slot .upload-area i { font-size: 1.3rem; }
         .file-preview-item {
             display: flex;
             align-items: center;
@@ -252,7 +254,27 @@
             font-size: 0.88rem;
         }
         .file-preview-item .file-icon { font-size: 1.2rem; color: #2a6f9c; }
-        .file-preview-item .remove-file { margin-left: auto; cursor: pointer; color: #dc3545; }
+        .file-preview-item .preview-file { margin-left: auto; cursor: pointer; color: #2a6f9c; }
+        .file-preview-item .remove-file { cursor: pointer; color: #dc3545; }
+        .file-preview-item .file-icon,
+        .file-preview-item .preview-file,
+        .file-preview-item .remove-file { flex-shrink: 0; }
+        .file-preview-item .doc-slot-filename {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin-left: 2px;
+        }
+        .doc-preview-media { max-width: 100%; max-height: 70vh; border-radius: 8px; }
+        .doc-preview-frame { width: 100%; height: 70vh; border: 0; }
+        #docPreviewModalLabel { min-width: 0; }
+        @media (max-width: 575.98px) {
+            .doc-slot .upload-area { padding: 0.75rem; }
+            .doc-slot .upload-area i { font-size: 1.1rem; }
+            .doc-slot .upload-area p { font-size: 0.8rem; }
+            .file-preview-item { padding: 7px 10px; gap: 8px; font-size: 0.82rem; }
+            .doc-preview-media { max-height: 82vh; }
+            .doc-preview-frame { height: 82vh; }
+        }
 
         /* ========== BACK TO TOP ========== */
         .top-link {
@@ -587,14 +609,73 @@
 
                         <div class="form-section">
                             <h6><i class="fas fa-file-upload me-2"></i>Upload Supporting Documents</h6>
-                            <p class="text-muted small mb-2">Attach required documents (e.g. PSA Birth Certificate, Report Card, Good Moral Certificate). You may select multiple files.</p>
-                            <div class="upload-area" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color:#2a6f9c;"></i>
-                                <p class="mb-1 fw-semibold">Drag &amp; drop files here, or <span class="text-primary" style="cursor:pointer;" onclick="document.getElementById('docFiles').click()">browse</span></p>
-                                <p class="text-muted small mb-0">Accepted: PDF, JPG, PNG, DOC, DOCX &mdash; Max 5MB per file</p>
-                                <input type="file" id="docFiles" name="documents[]" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="d-none">
+                            <p class="text-muted small mb-3">Upload one file at a time for each document below. Accepted: PDF, JPG, PNG, DOC, DOCX &mdash; Max 5MB per file.</p>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold small">PSA Birth Certificate</label>
+                                    <div class="doc-slot">
+                                        <div class="upload-area doc-slot-empty" onclick="this.querySelector('.doc-slot-input').click()">
+                                            <i class="fas fa-cloud-upload-alt mb-1" style="color:#2a6f9c;"></i>
+                                            <p class="mb-0 small fw-semibold">Click to upload</p>
+                                            <input type="file" class="d-none doc-slot-input" name="documents[]" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                        </div>
+                                        <div class="file-preview-item doc-slot-filled d-none">
+                                            <i class="file-icon fas fa-file-alt"></i>
+                                            <span class="doc-slot-filename text-truncate"></span>
+                                            <i class="preview-file fas fa-eye" title="Preview"></i>
+                                            <i class="remove-file fas fa-times-circle" title="Remove"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold small">Form 137 / Report Card</label>
+                                    <div class="doc-slot">
+                                        <div class="upload-area doc-slot-empty" onclick="this.querySelector('.doc-slot-input').click()">
+                                            <i class="fas fa-cloud-upload-alt mb-1" style="color:#2a6f9c;"></i>
+                                            <p class="mb-0 small fw-semibold">Click to upload</p>
+                                            <input type="file" class="d-none doc-slot-input" name="documents[]" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                        </div>
+                                        <div class="file-preview-item doc-slot-filled d-none">
+                                            <i class="file-icon fas fa-file-alt"></i>
+                                            <span class="doc-slot-filename text-truncate"></span>
+                                            <i class="preview-file fas fa-eye" title="Preview"></i>
+                                            <i class="remove-file fas fa-times-circle" title="Remove"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold small">Good Moral Certificate</label>
+                                    <div class="doc-slot">
+                                        <div class="upload-area doc-slot-empty" onclick="this.querySelector('.doc-slot-input').click()">
+                                            <i class="fas fa-cloud-upload-alt mb-1" style="color:#2a6f9c;"></i>
+                                            <p class="mb-0 small fw-semibold">Click to upload</p>
+                                            <input type="file" class="d-none doc-slot-input" name="documents[]" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                        </div>
+                                        <div class="file-preview-item doc-slot-filled d-none">
+                                            <i class="file-icon fas fa-file-alt"></i>
+                                            <span class="doc-slot-filename text-truncate"></span>
+                                            <i class="preview-file fas fa-eye" title="Preview"></i>
+                                            <i class="remove-file fas fa-times-circle" title="Remove"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold small">Brigada Eskwela Commitment Slip</label>
+                                    <div class="doc-slot">
+                                        <div class="upload-area doc-slot-empty" onclick="this.querySelector('.doc-slot-input').click()">
+                                            <i class="fas fa-cloud-upload-alt mb-1" style="color:#2a6f9c;"></i>
+                                            <p class="mb-0 small fw-semibold">Click to upload</p>
+                                            <input type="file" class="d-none doc-slot-input" name="documents[]" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                        </div>
+                                        <div class="file-preview-item doc-slot-filled d-none">
+                                            <i class="file-icon fas fa-file-alt"></i>
+                                            <span class="doc-slot-filename text-truncate"></span>
+                                            <i class="preview-file fas fa-eye" title="Preview"></i>
+                                            <i class="remove-file fas fa-times-circle" title="Remove"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="filePreviewList" class="mt-2"></div>
                         </div>
 
                     </div></div>
@@ -607,6 +688,18 @@
                 </div>
 
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="docPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title text-truncate" id="docPreviewModalLabel"><i class="fas fa-eye me-2"></i>Document Preview</h6>
+                <button type="button" class="btn-close flex-shrink-0" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex align-items-center justify-content-center text-center" id="docPreviewModalBody"></div>
         </div>
     </div>
 </div>
@@ -685,16 +778,10 @@
         form.reset();
         document.getElementById('mainFormFields').style.display = 'none';
         document.getElementById('lrnLookupSection').style.display = 'none';
-        document.getElementById('filePreviewList').innerHTML = '';
-        selectedFiles = [];
+        resetDocSlots();
     });
 
-    // ========== DOCUMENT UPLOAD ==========
-    const uploadArea = document.getElementById('uploadArea');
-    const docFiles  = document.getElementById('docFiles');
-    const previewList = document.getElementById('filePreviewList');
-    let selectedFiles = [];
-
+    // ===== DOCUMENT UPLOAD (one file at a time, per document type) =====
     function iconForType(name) {
         const ext = name.split('.').pop().toLowerCase();
         if (['jpg','jpeg','png'].includes(ext)) return 'fas fa-image';
@@ -703,54 +790,86 @@
         return 'fas fa-file-alt';
     }
 
-    function renderPreviews() {
-        previewList.innerHTML = '';
-        selectedFiles.forEach((f, i) => {
-            const sizeKB = (f.size / 1024).toFixed(1);
-            const div = document.createElement('div');
-            div.className = 'file-preview-item';
-            div.innerHTML = `<i class="file-icon ${iconForType(f.name)}"></i>
-                <span class="text-truncate" style="max-width:60%;">${f.name}</span>
-                <span class="text-muted ms-1">(${sizeKB} KB)</span>
-                <i class="remove-file fas fa-times-circle" data-idx="${i}" title="Remove"></i>`;
-            previewList.appendChild(div);
-        });
-        // Sync to actual input via DataTransfer
-        const dt = new DataTransfer();
-        selectedFiles.forEach(f => dt.items.add(f));
-        docFiles.files = dt.files;
-        // Bind remove buttons
-        previewList.querySelectorAll('.remove-file').forEach(btn => {
-            btn.addEventListener('click', () => {
-                selectedFiles.splice(parseInt(btn.dataset.idx), 1);
-                renderPreviews();
-            });
+    let docSlotPreviewUrl = null;
+    const docPreviewModalEl = document.getElementById('docPreviewModal');
+    const docPreviewModal   = docPreviewModalEl ? new bootstrap.Modal(docPreviewModalEl) : null;
+    const docPreviewBody    = document.getElementById('docPreviewModalBody');
+    const docPreviewLabel   = document.getElementById('docPreviewModalLabel');
+
+    function previewDocFile(f) {
+        if (!f || !docPreviewModal) return;
+        if (docSlotPreviewUrl) { URL.revokeObjectURL(docSlotPreviewUrl); docSlotPreviewUrl = null; }
+        docSlotPreviewUrl = URL.createObjectURL(f);
+        docPreviewLabel.innerHTML = '<i class="fas fa-eye me-2"></i>' + f.name;
+
+        const ext = f.name.split('.').pop().toLowerCase();
+        if (['jpg','jpeg','png'].includes(ext)) {
+            docPreviewBody.innerHTML = `<img src="${docSlotPreviewUrl}" class="doc-preview-media">`;
+        } else if (ext === 'pdf') {
+            docPreviewBody.innerHTML = `<iframe src="${docSlotPreviewUrl}" class="doc-preview-frame"></iframe>`;
+        } else {
+            docPreviewBody.innerHTML = `<p class="text-muted mb-3">Preview isn't available for this file type.</p>
+                <a href="${docSlotPreviewUrl}" download="${f.name}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-download me-1"></i> Download to view
+                </a>`;
+        }
+        docPreviewModal.show();
+    }
+
+    if (docPreviewModalEl) {
+        docPreviewModalEl.addEventListener('hidden.bs.modal', function() {
+            if (docSlotPreviewUrl) { URL.revokeObjectURL(docSlotPreviewUrl); docSlotPreviewUrl = null; }
+            docPreviewBody.innerHTML = '';
         });
     }
 
-    function addFiles(fileList) {
-        const MAX = 5 * 1024 * 1024;
-        Array.from(fileList).forEach(f => {
-            if (f.size > MAX) { alert(`"${f.name}" exceeds 5MB limit and was skipped.`); return; }
-            if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
-                selectedFiles.push(f);
+    function resetDocSlots() {
+        document.querySelectorAll('.doc-slot').forEach(function(slot) {
+            const input  = slot.querySelector('.doc-slot-input');
+            const empty  = slot.querySelector('.doc-slot-empty');
+            const filled = slot.querySelector('.doc-slot-filled');
+            input.value = '';
+            filled.classList.add('d-none');
+            empty.classList.remove('d-none');
+        });
+    }
+
+    document.querySelectorAll('.doc-slot').forEach(function(slot) {
+        const input      = slot.querySelector('.doc-slot-input');
+        const empty      = slot.querySelector('.doc-slot-empty');
+        const filled     = slot.querySelector('.doc-slot-filled');
+        const nameEl     = slot.querySelector('.doc-slot-filename');
+        const iconEl     = slot.querySelector('.file-icon');
+        const previewBtn = slot.querySelector('.preview-file');
+        const removeBtn  = slot.querySelector('.remove-file');
+        const MAX        = 5 * 1024 * 1024;
+
+        input.addEventListener('change', function() {
+            const f = input.files[0];
+            if (!f) return;
+            if (f.size > MAX) {
+                alert(`"${f.name}" exceeds 5MB limit.`);
+                input.value = '';
+                return;
             }
+            nameEl.textContent = f.name;
+            nameEl.title = f.name;
+            iconEl.className = 'file-icon ' + iconForType(f.name);
+            empty.classList.add('d-none');
+            filled.classList.remove('d-none');
         });
-        renderPreviews();
-    }
 
-    uploadArea.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('text-primary')) docFiles.click();
-    });
-    docFiles.addEventListener('change', () => addFiles(docFiles.files));
+        previewBtn.addEventListener('click', function() {
+            previewDocFile(input.files[0]);
+        });
 
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-    uploadArea.addEventListener('dragleave', ()  => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        addFiles(e.dataTransfer.files);
+        removeBtn.addEventListener('click', function() {
+            input.value = '';
+            filled.classList.add('d-none');
+            empty.classList.remove('d-none');
+        });
     });
+
 </script>
 <script src="js/pwa.js"></script>
 

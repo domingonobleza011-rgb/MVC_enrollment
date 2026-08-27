@@ -27,7 +27,9 @@
     </div>
 
     <!-- Bootstrap core JavaScript-->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery now loads early in <head> (dashboard_sidebar_start.php) so it's
+         available to the DataTables/filter-bar scripts that run earlier on
+         the page — no need to load it again here. -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -36,6 +38,60 @@
             $('#logoutConfirmModal').modal('show');
             return false;
         }
+    </script>
+
+    <!-- Theme switcher: Light / Dark / Default (system) -->
+    <script>
+    (function () {
+        var STORAGE_KEY = 'eusebia_admin_theme';
+
+        function applyEffectiveTheme(pref) {
+            var effective = pref;
+            if (pref === 'default') {
+                effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', effective);
+            document.documentElement.setAttribute('data-theme-pref', pref);
+
+            var icon = document.getElementById('themeSwitchIcon');
+            if (icon) {
+                icon.className = 'fa-fw ' + (
+                    pref === 'light' ? 'fas fa-sun' :
+                    pref === 'dark'  ? 'fas fa-moon' :
+                                       'fas fa-circle-half-stroke'
+                );
+            }
+
+            document.querySelectorAll('[data-theme-choice]').forEach(function (el) {
+                el.classList.toggle('active-theme', el.getAttribute('data-theme-choice') === pref);
+            });
+        }
+
+        function setTheme(pref) {
+            localStorage.setItem(STORAGE_KEY, pref);
+            applyEffectiveTheme(pref);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var stored = localStorage.getItem(STORAGE_KEY) || 'default';
+            applyEffectiveTheme(stored);
+
+            document.querySelectorAll('[data-theme-choice]').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    setTheme(el.getAttribute('data-theme-choice'));
+                });
+            });
+
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+                    if ((localStorage.getItem(STORAGE_KEY) || 'default') === 'default') {
+                        applyEffectiveTheme('default');
+                    }
+                });
+            }
+        });
+    })();
     </script>
 
     <!-- Core plugin JavaScript-->

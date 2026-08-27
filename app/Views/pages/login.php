@@ -199,6 +199,12 @@
 
         .input-field::placeholder { color: #a0afc0; font-weight: 400; }
 
+        .input-field.is-invalid { color: #dc3545; }
+        .input-group-custom:has(.input-field.is-invalid) {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
         .form-switch-custom {
             display: flex;
             align-items: center;
@@ -318,6 +324,32 @@
             box-shadow: 0 8px 18px rgba(11,43,92,.25);
         }
 
+        .btn-login-submit:disabled {
+            opacity: .8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-spinner {
+            display: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,.45);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: loginSpin .7s linear infinite;
+            vertical-align: -2px;
+            margin-right: .55rem;
+        }
+
+        .btn-login-submit.is-loading .login-spinner {
+            display: inline-block;
+        }
+
+        @keyframes loginSpin {
+            to { transform: rotate(360deg); }
+        }
+
         .btn-register-link {
             background: #eef2ff;
             border: 1.5px solid #cbd5e1;
@@ -392,13 +424,14 @@
                         <?= $_SESSION['google_error']; unset($_SESSION['google_error']); ?>
                     </div>
                 <?php endif; ?>
-                <form method="post">
+                <form method="post" id="loginForm">
                     
                     <label class="form-label">Email or Phone</label>
                     <div class="input-group-custom">
                         <div class="input-icon"><i class="fas fa-envelope"></i></div>
-                        <input class="input-field" type="text" placeholder="your.email@example.com" name="login_identity" required autofocus>
+                        <input class="input-field" type="text" placeholder="your.email@example.com" name="login_identity" id="loginIdentityField" required autofocus>
                     </div>
+                    <div id="loginIdentityError" class="text-danger small mt-1" style="display:none;"></div>
 
                     <label class="form-label">Password</label>
                     <div class="input-group-custom">
@@ -411,8 +444,10 @@
                         <label for="showPasswordSwitch">Show password</label>
                     </div>
 
-                    <button class="btn-login-submit" type="submit" name="login">
-                        <i class="fas fa-sign-in-alt me-2"></i> Log in
+                    <button class="btn-login-submit" type="submit" name="login" id="loginSubmitButton">
+                        <span class="login-spinner"></span>
+                        <i class="fas fa-sign-in-alt me-2 login-button-icon"></i>
+                        <span class="login-button-text">Log in</span>
                     </button>
                 </form>
 <div class="text-end mb-3" style="margin-top:-0.8rem;">
@@ -466,6 +501,56 @@
         x.type = (x.type === "password") ? "text" : "password";
     }
 
+
+
+    // Identity field must be either a plausible email (has @ and a domain)
+    // or a plausible phone number (digits, optionally with +/-/spaces) —
+    // reject anything else (e.g. a typo'd email missing the @) before it
+    // ever reaches the server.
+    function isValidLoginIdentity(value) {
+        var val = (value || '').trim();
+        var isPhone = /^[0-9+\-\s()]{7,15}$/.test(val);
+        var isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        return isPhone || isEmail;
+    }
+
+    // Show a loading phase after a valid login form is submitted.
+    const loginForm = document.getElementById("loginForm");
+    const loginSubmitButton = document.getElementById("loginSubmitButton");
+    const loginIdentityField = document.getElementById("loginIdentityField");
+    const loginIdentityError = document.getElementById("loginIdentityError");
+
+    if (loginIdentityField && loginIdentityError) {
+        loginIdentityField.addEventListener("input", function () {
+            loginIdentityError.style.display = "none";
+            loginIdentityField.classList.remove("is-invalid");
+        });
+    }
+
+    if (loginForm && loginSubmitButton) {
+        loginForm.addEventListener("submit", function (e) {
+            // The submit event only reaches here after HTML required validation passes.
+            if (loginIdentityField && !isValidLoginIdentity(loginIdentityField.value)) {
+                e.preventDefault();
+                if (loginIdentityError) {
+                    loginIdentityError.textContent = "Enter a valid email address (must include @) or a valid phone number.";
+                    loginIdentityError.style.display = "block";
+                }
+                loginIdentityField.classList.add("is-invalid");
+                loginIdentityField.focus();
+                return;
+            }
+
+            loginSubmitButton.disabled = true;
+            loginSubmitButton.classList.add("is-loading");
+
+            const icon = loginSubmitButton.querySelector(".login-button-icon");
+            const text = loginSubmitButton.querySelector(".login-button-text");
+
+            if (icon) icon.style.display = "none";
+            if (text) text.textContent = "Logging in...";
+        });
+    }
     function handleGoogleLogin(e) {
         e.preventDefault();
         var params = new URLSearchParams({

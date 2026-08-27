@@ -242,8 +242,19 @@ class EUSEBIAClass {
         //authentication function para sa sa tatlong type ng accounts
 public function login() {
     if(isset($_POST['login'])) {
-        $identity = $_POST['login_identity']; 
-        $password_input = $_POST['password']; 
+        $identity = trim($_POST['login_identity']);
+        $password_input = $_POST['password'];
+
+        // Reject identities that are neither a plausible email (has @ and
+        // a domain) nor a plausible phone number — e.g. a typo'd email
+        // that's missing the @ — before touching the database at all.
+        $is_phone = (bool) preg_match('/^[0-9+\-\s()]{7,15}$/', $identity);
+        $is_email = (bool) filter_var($identity, FILTER_VALIDATE_EMAIL);
+        if (!$is_phone && !$is_email) {
+            echo "<script type='text/javascript'>alert('Enter a valid email address (must include @) or a valid phone number.');</script>";
+            return;
+        }
+
         $connection = $this->openConn();
 
         // 1. Check ADMIN - Only check EMAIL

@@ -19,6 +19,7 @@ class AdmnSevenController extends Controller
     $eusebia->admin_add_enrollee('seven');
     $eusebia->mark_requirements_complete('seven');
     $view = $eusebia->view_seven();
+        $search = trim($_GET['search'] ?? '');
     $id_student = $_GET['id_student'] ?? null;
     $student = $id_student ? $studenteusebia->get_single_seven($id_student) : null;
 

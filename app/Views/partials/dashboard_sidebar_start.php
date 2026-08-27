@@ -2,6 +2,19 @@
 <html lang="en">
 
 <head>
+    <!-- Theme init: runs before CSS/paint so there's no flash of the wrong theme.
+         Stored value is 'light', 'dark', or 'default' (follow system preference). -->
+    <script>
+        (function () {
+            var stored = localStorage.getItem('eusebia_admin_theme') || 'default';
+            var effective = stored;
+            if (stored === 'default') {
+                effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', effective);
+            document.documentElement.setAttribute('data-theme-pref', stored);
+        })();
+    </script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -18,6 +31,13 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icons/pwa/icon-96x96.png">
 
     <title>EUSEBIA PAZ ARROYO NATIONAL HIGH SCHOOL</title>
+
+    <!-- jQuery must load before any page content that uses it (e.g. the
+         DataTables setup + filter-bar scripts inside admn_*_search.php
+         partials, which render before dashboard_sidebar_end.php's own
+         jQuery <script> tag further down the page). Loading it here in
+         <head> guarantees $ is defined before those scripts run. -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Custom fonts for this template-->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" type="text/css">
@@ -561,6 +581,142 @@
             max-height: 80vh;
             overflow-y: auto;
         }
+
+        /* ================================================
+                   THEME SWITCHER (topbar dropdown)
+                   ================================================ */
+        .theme-switch-menu { min-width: 180px; }
+        .theme-switch-menu .dropdown-item.active-theme {
+            font-weight: 700;
+            color: #0b2b5c;
+        }
+        .theme-switch-menu .dropdown-item.active-theme i.fa-check { display: inline-block !important; }
+        .theme-switch-menu .dropdown-item i.fa-check { display: none; margin-left: auto; }
+        .theme-switch-menu .dropdown-item { display: flex; align-items: center; gap: 10px; }
+
+        /* ================================================
+                   DARK MODE
+                   ================================================ */
+        html[data-theme="dark"] body {
+            background-color: #12161f !important;
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] #content-wrapper {
+            background-color: #12161f !important;
+        }
+        html[data-theme="dark"] .topbar.navbar-light,
+        html[data-theme="dark"] nav.navbar.bg-white {
+            background-color: #1a1f2b !important;
+            border-color: rgba(255,255,255,0.06) !important;
+        }
+        html[data-theme="dark"] .topbar .nav-link,
+        html[data-theme="dark"] .topbar .nav-link i {
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .topbar-divider {
+            border-color: rgba(255,255,255,0.1) !important;
+        }
+        html[data-theme="dark"] .card {
+            background-color: #1a1f2b !important;
+            border-color: rgba(255,255,255,0.08) !important;
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .card-header {
+            background-color: #1e2432 !important;
+            border-color: rgba(255,255,255,0.08) !important;
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .table {
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .table thead th {
+            background-color: #1e2432 !important;
+            color: #d7dbe2 !important;
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] .table td,
+        html[data-theme="dark"] .table th {
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] .table-hover tbody tr:hover {
+            background-color: rgba(255,255,255,0.04) !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .table-bordered,
+        html[data-theme="dark"] .table-bordered td,
+        html[data-theme="dark"] .table-bordered th {
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] .form-control,
+        html[data-theme="dark"] .custom-select,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea,
+        html[data-theme="dark"] input {
+            background-color: #232a38 !important;
+            border-color: rgba(255,255,255,0.12) !important;
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .form-control::placeholder {
+            color: rgba(215,219,226,0.4) !important;
+        }
+        html[data-theme="dark"] .form-control:focus {
+            background-color: #232a38 !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .modal-content {
+            background-color: #1a1f2b !important;
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .modal-header,
+        html[data-theme="dark"] .modal-footer {
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] .dropdown-menu {
+            background-color: #1a1f2b !important;
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] .dropdown-item {
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .dropdown-item:hover,
+        html[data-theme="dark"] .dropdown-item:focus {
+            background-color: rgba(255,255,255,0.06) !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .dropdown-header {
+            color: rgba(215,219,226,0.6) !important;
+        }
+        html[data-theme="dark"] .dropdown-divider {
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] .theme-switch-menu .dropdown-item.active-theme {
+            color: #a5b4fc;
+        }
+        html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3,
+        html[data-theme="dark"] h4, html[data-theme="dark"] h5, html[data-theme="dark"] h6,
+        html[data-theme="dark"] .text-gray-800, html[data-theme="dark"] .text-gray-900 {
+            color: #eef0f4 !important;
+        }
+        html[data-theme="dark"] .text-gray-600, html[data-theme="dark"] .text-gray-500 {
+            color: #9aa2b1 !important;
+        }
+        html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item) {
+            color: #818cf8;
+        }
+        html[data-theme="dark"] .btn-outline-secondary,
+        html[data-theme="dark"] .btn-secondary {
+            color: #d7dbe2 !important;
+            border-color: rgba(255,255,255,0.2) !important;
+        }
+        html[data-theme="dark"] hr {
+            border-color: rgba(255,255,255,0.08) !important;
+        }
+        html[data-theme="dark"] ::-webkit-scrollbar-track {
+            background: #12161f;
+        }
+        html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: #3a4256;
+        }
     </style>
 </head>
 
@@ -686,11 +842,7 @@
                 Administration
             </div>
 
-            <li class="nav-item <?= $current_page === 'admn_staff_crud.php' ? 'active' : '' ?>">
-                <a class="nav-link" href="admn_staff_crud.php">
-                    <span><i class="fas fa-chalkboard-teacher"></i> Teachers &amp; Advisers</span>
-                </a>
-            </li>
+
             <li class="nav-item <?= $current_page === 'admn_student_verification.php' ? 'active' : '' ?>">
                 <a class="nav-link" href="admn_student_verification.php">
                     <span><i class="fas fa-shield-alt"></i> Account Verification</span>
@@ -740,6 +892,30 @@
                                 ? $eusebia->get_pending_enrollees()
                                 : ['total' => 0, 'items' => []];
                         ?>
+
+                        <!-- Nav Item - Theme Switcher -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="themeSwitchDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Theme">
+                                <i class="fas fa-circle-half-stroke fa-fw" id="themeSwitchIcon"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in theme-switch-menu"
+                                aria-labelledby="themeSwitchDropdown">
+                                <h6 class="dropdown-header">Theme</h6>
+                                <a class="dropdown-item" href="#" data-theme-choice="light">
+                                    <i class="fas fa-sun"></i> Light
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
+                                <a class="dropdown-item" href="#" data-theme-choice="dark">
+                                    <i class="fas fa-moon"></i> Dark
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
+                                <a class="dropdown-item" href="#" data-theme-choice="default">
+                                    <i class="fas fa-desktop"></i> Default (System)
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
+                            </div>
+                        </li>
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 

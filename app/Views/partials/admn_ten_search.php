@@ -1,19 +1,27 @@
 <?php require MODELS_PATH . '/conn.php'; require_once MODELS_PATH . '/ai_review_ui.php'; ?>
 
-<!-- ===== DOCUMENT VIEWER MODAL ===== -->
+<!-- ===== DOCUMENT VIEWER MODAL (Facebook-story style) ===== -->
 <div class="modal fade" id="docViewerModal" tabindex="-1" role="dialog" aria-labelledby="docViewerTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius:16px;overflow:hidden;">
             <div class="modal-header" style="background:linear-gradient(135deg,#0b2b5c,#1f5a9e);color:white;">
                 <h5 class="modal-title" id="docViewerTitle">
                     <i class="fas fa-file"></i>&nbsp;<span id="docViewerTitleText">Document Preview</span>
+                    <span id="docViewerCounter" class="ml-2 small font-weight-normal" style="opacity:.8;"></span>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:white;opacity:1;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body text-center p-3" id="docViewerBody" style="min-height:300px;background:#f8f9fa;">
-                <p class="text-muted pt-5">Loading...</p>
+            <div id="docViewerSegments" class="d-flex" style="gap:4px;padding:8px 12px 0;background:#f8f9fa;"></div>
+            <div class="modal-body text-center p-3 position-relative" id="docViewerBody" style="min-height:300px;background:#f8f9fa;">
+                <button type="button" id="docViewerPrev" class="doc-nav-btn doc-nav-prev" onclick="prevDocViewer()" aria-label="Previous document">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div id="docViewerContent"><p class="text-muted pt-5">Loading...</p></div>
+                <button type="button" id="docViewerNext" class="doc-nav-btn doc-nav-next" onclick="nextDocViewer()" aria-label="Next document">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" style="border-radius:20px;">Close</button>
@@ -55,6 +63,18 @@
 
 <style>
 #docViewerBody img { max-width:100%;max-height:68vh;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);object-fit:contain; }
+.doc-nav-btn {
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:40px; height:40px; border-radius:50%; border:none;
+    background:rgba(0,0,0,.35); color:#fff; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:background .15s; z-index:5;
+}
+.doc-nav-btn:hover { background:rgba(0,0,0,.6); }
+.doc-nav-prev { left:10px; }
+.doc-nav-next { right:10px; }
+#docViewerSegments .doc-segment { flex:1; height:3px; border-radius:2px; background:#dfe3ea; overflow:hidden; }
+#docViewerSegments .doc-segment.active { background:#0b2b5c; }
 #docViewerBody iframe { width:100%;height:68vh;border:none;border-radius:8px; }
 .doc-preview-btn { display:inline-block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:pointer;transition:transform .15s,box-shadow .15s; }
 .doc-preview-btn:hover { transform:scale(1.04);box-shadow:0 3px 10px rgba(42,111,156,.3); }
@@ -97,7 +117,25 @@
 
 <?php
 
-function renderDocs_ten($docsJson) {
+function resolveDocLabel_ten($fileName, $aiDocsByFile, $index) {
+    if (isset($aiDocsByFile[$fileName])) {
+        $type = $aiDocsByFile[$fileName]['detected_type'] ?? '';
+        if ($type !== '' && $type !== 'Other / Unclear' && $type !== 'Unreadable') {
+            return $type;
+        }
+    }
+    $base = strtolower($fileName);
+    if (strpos($base, 'psa') !== false || strpos($base, 'birth') !== false) return 'PSA Birth Certificate';
+    if (strpos($base, 'brigada') !== false) return 'Brigada Eskwela Commitment Slip';
+    if (strpos($base, '137') !== false || strpos($base, 'reportcard') !== false || strpos($base, 'report_card') !== false) return 'Form 137 / Report Card';
+    if (strpos($base, 'goodmoral') !== false || strpos($base, 'good_moral') !== false || strpos($base, 'moral') !== false) return 'Good Moral Certificate';
+    if (strpos($base, 'completion') !== false) return 'Certificate of Completion';
+    if (strpos($base, '4ps') !== false || strpos($base, 'pantawid') !== false) return '4Ps / Pantawid Pamilya Certificate';
+    if (strpos($base, 'indigenous') !== false || strpos($base, '_ip_') !== false) return 'Indigenous People (IP) Certificate';
+    return 'Document ' . ($index + 1);
+}
+
+function renderDocs_ten($docsJson, $groupKey, $aiAnalysisJson = null) {
     $docs = json_decode($docsJson ?? '[]', true);
     if (is_array($docs) && array_key_exists('admin_marked', $docs)) {
         if ($docs['admin_marked'] === 'Incomplete') {
@@ -109,19 +147,34 @@ function renderDocs_ten($docsJson) {
         return;
     }
     if (empty($docs)) { echo '<span class="text-muted small">No documents</span>'; return; }
-    foreach ($docs as $docPath) {
+
+    $ai = $aiAnalysisJson ? json_decode($aiAnalysisJson, true) : null;
+    $aiDocsByFile = [];
+    if (!empty($ai['documents']) && is_array($ai['documents'])) {
+        foreach ($ai['documents'] as $d) {
+            if (!empty($d['file'])) $aiDocsByFile[basename($d['file'])] = $d;
+        }
+    }
+
+    $items = [];
+    foreach ($docs as $i => $docPath) {
         $fileName = basename($docPath);
         $ext   = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $isImg = in_array($ext, ['jpg','jpeg','png','gif','webp']);
         $isPdf = $ext === 'pdf';
-        $icon  = $isImg ? 'fa-image' : ($isPdf ? 'fa-file-pdf' : 'fa-file-word');
-        $type  = $isImg ? 'image' : ($isPdf ? 'pdf' : 'doc');
-        echo '<button type="button" class="btn btn-outline-primary btn-sm mb-1 doc-preview-btn"
-                onclick="openDocViewer(\''.addslashes(htmlspecialchars($docPath)).'\',\''.addslashes(htmlspecialchars($fileName)).'\',\''.($type).'\' )"
-                title="'.htmlspecialchars($fileName).'">
-                <i class="fas '.$icon.'"></i> '.htmlspecialchars($fileName).'
-              </button><br>';
+        $items[] = [
+            'path' => $docPath,
+            'name' => resolveDocLabel_ten($fileName, $aiDocsByFile, $i),
+            'type' => $isImg ? 'image' : ($isPdf ? 'pdf' : 'doc'),
+        ];
     }
+
+    echo '<script>(window.__docGroups=window.__docGroups||{})[' . json_encode($groupKey) . ']=' . json_encode($items) . ';</script>';
+
+    echo '<button type="button" class="btn btn-outline-primary btn-sm doc-view-btn"
+            onclick="openDocViewer(\''.addslashes($groupKey).'\', 0)">
+            <i class="fas fa-folder-open mr-1"></i> View (' . count($items) . ')
+          </button>';
 }
 
 function renderStatus_ten($status) {
@@ -240,6 +293,26 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
 <!-- ===== BULK ACTION FORM ===== -->
 <form id="bulkFormTen" method="POST" action="" style="display:none;"></form>
 
+<!-- ===== FILTER BAR ===== -->
+<div class="card modern-card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="form-group mb-0">
+            <label for="filterSearchTen" class="small font-weight-bold text-muted mb-1">Search by Name or Email</label>
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control" id="filterSearchTen" placeholder="Type a name or email...">
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-primary" id="filterSearchBtnTen">
+                        <i class="fas fa-search mr-1"></i>Search
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="filterClearBtnTen">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== ENROLLEES TABLE (card, matches staff view style) ===== -->
 <div class="card modern-card shadow-sm">
     <div class="card-header py-2 d-flex align-items-center justify-content-between flex-wrap"
@@ -266,8 +339,8 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
                 <thead class="text-center">
                     <tr>
                         <th style="width:34px;"><input type="checkbox" id="selectAllTen" onclick="toggleSelectAll('ten', this)"></th>
-                        <th>LRN</th><th>Course</th><th class="text-left">Full Name</th><th>Birthday</th><th>Age</th>
-                        <th>Contact</th><th>Email</th><th>Documents</th><th><img src="https://cdn.simpleicons.org/mistralai" width="24" height="24" alt="Mistral AI"></th><th>Requirements</th><th>Status</th><th>Actions</th>
+                        <th>LRN</th><th>Course</th><th class="text-left" data-col="name">Full Name</th><th data-col="bdate">Birthday</th><th>Age</th>
+                        <th>Contact</th><th data-col="email">Email</th><th>Documents</th><th><img src="https://cdn.simpleicons.org/mistralai" width="24" height="24" alt="Mistral AI"></th><th>Requirements</th><th data-col="status">Status</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody class="text-center">
@@ -291,7 +364,7 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
             <td><?= htmlspecialchars($row['age']) ?></td>
             <td><?= htmlspecialchars($row['contact']) ?></td>
             <td><?= htmlspecialchars($row['email']) ?></td>
-            <td style="min-width:145px;"><?php renderDocs_ten($row['documents'] ?? ''); ?></td>
+            <td style="min-width:145px;"><?php renderDocs_ten($row['documents'] ?? '', 'ten_' . $row['id_ten'], $row['ai_analysis'] ?? null); ?></td>
             <td style="min-width:150px;"><?php render_ai_review_cell($row['ai_analysis'] ?? null, 'ten', $row['id_ten']); ?></td>
             <td><?php renderRequirements_ten($reqStatus); ?></td>
             <td><?php renderStatus_ten($rStatus); ?></td>
@@ -363,27 +436,114 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 <script>
 $(document).ready(function(){
-    $('#studentsTable').DataTable({ pageLength: 20, order: [[3,'asc']], columnDefs: [{ orderable: false, targets: [0, 12] }] });
+    var studentsTable_ten = $('#studentsTable').DataTable({ dom: 'rt', paging: false, order: [[3,'asc']], columnDefs: [{ orderable: false, targets: [0, 12] }] });
+
+    // ===== Filter bar wiring: combined Name/Email search =====
+    (function() {
+        var table = studentsTable_ten;
+        var nameCol  = $('#studentsTable thead th[data-col="name"]').index();
+        var emailCol = $('#studentsTable thead th[data-col="email"]').index();
+        var activeTerm = '';
+
+        $.fn.dataTable.ext.search.push(function(settings, data) {
+            if (settings.nTable.id !== 'studentsTable') return true;
+            if (!activeTerm) return true;
+
+            var name  = String(data[nameCol]  || '').toLowerCase();
+            var email = String(data[emailCol] || '').toLowerCase();
+            return name.indexOf(activeTerm) !== -1 || email.indexOf(activeTerm) !== -1;
+        });
+
+        function runSearchTen() {
+            activeTerm = $('#filterSearchTen').val().trim().toLowerCase();
+            table.draw();
+        }
+
+        $('#filterSearchBtnTen').on('click', runSearchTen);
+
+        $('#filterSearchTen').on('keypress', function(e) {
+            if (e.which === 13) { e.preventDefault(); runSearchTen(); }
+        });
+
+        $('#filterClearBtnTen').on('click', function() {
+            $('#filterSearchTen').val('');
+            activeTerm = '';
+            table.draw();
+        });
+    })();
 });
 </script>
 
 
 <script>
-function openDocViewer(path, name, type) {
-    document.getElementById('docViewerTitleText').textContent = name;
-    var body = document.getElementById('docViewerBody');
-    if (type === 'image') {
-        body.innerHTML = '<img src="' + path + '" alt="' + name + '">';
-    } else if (type === 'pdf') {
-        body.innerHTML = '<iframe src="' + path + '" title="' + name + '"></iframe>';
-    } else {
-        body.innerHTML = '<div class="doc-unsupported"><i class="fas fa-file-word big-icon"></i><strong>' + name + '</strong><p class="mt-2 text-muted">This file type cannot be previewed here.</p></div>';
-    }
+/* ---- Document Viewer (Facebook-story style, with Prev/Next) ---- */
+var __docViewerState = { group: null, index: 0 };
+
+function openDocViewer(group, index) {
+    __docViewerState.group = group;
+    __docViewerState.index = index;
+    renderDocViewer();
     document.getElementById('docViewerRelay').click();
 }
+
+function renderDocViewer() {
+    var group = __docViewerState.group;
+    var items = (window.__docGroups && window.__docGroups[group]) || [];
+    var total = items.length;
+    if (!total) return;
+
+    var index = __docViewerState.index;
+    if (index < 0) index = 0;
+    if (index > total - 1) index = total - 1;
+    __docViewerState.index = index;
+
+    var item = items[index];
+    document.getElementById('docViewerTitleText').textContent = item.name;
+    document.getElementById('docViewerCounter').textContent = total > 1 ? '(' + (index + 1) + ' / ' + total + ')' : '';
+
+    var content = document.getElementById('docViewerContent');
+    if (item.type === 'image') {
+        content.innerHTML = '<img src="' + item.path + '" alt="' + item.name + '">';
+    } else if (item.type === 'pdf') {
+        content.innerHTML = '<iframe src="' + item.path + '" title="' + item.name + '"></iframe>';
+    } else {
+        content.innerHTML = '<div class="doc-unsupported"><i class="fas fa-file-word big-icon"></i><strong>' + item.name + '</strong><p class="mt-2 text-muted">This file type cannot be previewed here.</p></div>';
+    }
+
+    var segWrap = document.getElementById('docViewerSegments');
+    segWrap.innerHTML = '';
+    if (total > 1) {
+        for (var i = 0; i < total; i++) {
+            var seg = document.createElement('div');
+            seg.className = 'doc-segment' + (i === index ? ' active' : '');
+            segWrap.appendChild(seg);
+        }
+    }
+
+    var show = total > 1;
+    document.getElementById('docViewerPrev').style.display = show ? 'flex' : 'none';
+    document.getElementById('docViewerNext').style.display = show ? 'flex' : 'none';
+}
+
+function prevDocViewer() {
+    var items = (window.__docGroups && window.__docGroups[__docViewerState.group]) || [];
+    if (!items.length) return;
+    __docViewerState.index = (__docViewerState.index - 1 + items.length) % items.length;
+    renderDocViewer();
+}
+
+function nextDocViewer() {
+    var items = (window.__docGroups && window.__docGroups[__docViewerState.group]) || [];
+    if (!items.length) return;
+    __docViewerState.index = (__docViewerState.index + 1) % items.length;
+    renderDocViewer();
+}
+
 document.getElementById('docViewerModal').addEventListener('hidden.bs.modal', function () {
-    document.getElementById('docViewerBody').innerHTML = '<p class="text-muted pt-5">Loading...</p>';
+    document.getElementById('docViewerContent').innerHTML = '<p class="text-muted pt-5">Loading...</p>';
     document.getElementById('docViewerTitleText').textContent = 'Document Preview';
+    document.getElementById('docViewerCounter').textContent = '';
+    document.getElementById('docViewerSegments').innerHTML = '';
 });
 
 function confirmApprove_ten(form) {

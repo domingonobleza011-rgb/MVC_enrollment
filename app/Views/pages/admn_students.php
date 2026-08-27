@@ -111,7 +111,7 @@
                             <th>Birthdate</th>
                             <th>Email / Phone</th>
                             <th>Registered By</th>
-                            <th style="width:120px;">Promote</th>
+                            
                         </tr>
                     </thead>
                     <tbody id="studentTbody">
@@ -134,30 +134,11 @@
                                 <input type="checkbox" class="cb-row cb-student" value="<?= $r['id_student'] ?>">
                             </td>
                             <td class="text-center text-muted"><?= $i + 1 ?></td>
-                            <td class="font-weight-bold" style="color:#0b2b5c;"><?= htmlspecialchars($fullname) ?></td>
+                            <td class="font-weight-bold"><?= htmlspecialchars($fullname) ?></td>
                             <td><?= $bdate ?></td>
                             <td><?= htmlspecialchars($contact) ?></td>
                             <td><?= htmlspecialchars($r['addedby'] ?? '—') ?></td>
-                            <td class="text-center">
-                                <?php
-                                // Check if already a teacher
-                                $chk = $connection->prepare("SELECT id_user FROM tbl_user WHERE email=? OR (email IS NULL AND contact=?)");
-                                $chk->execute([$r['email'], $r['contact']]);
-                                $already = $chk->rowCount() > 0;
-                                ?>
-                                <?php if ($already): ?>
-                                    <span class="badge badge-success"><i class="fas fa-check mr-1"></i>Teacher</span>
-                                <?php else: ?>
-                                <button class="btn btn-outline-success btn-sm py-0 px-2 promote-btn"
-                                    data-id="<?= $r['id_student'] ?>"
-                                    data-name="<?= htmlspecialchars(strtoupper($r['lname']).', '.ucwords(strtolower($r['fname']))) ?>"
-                                    data-email="<?= htmlspecialchars($r['email'] ?? '') ?>"
-                                    data-contact="<?= htmlspecialchars($r['contact']) ?>"
-                                    data-toggle="modal" data-target="#promoteModal">
-                                    <i class="fas fa-chalkboard-teacher"></i> Promote
-                                </button>
-                                <?php endif; ?>
-                            </td>
+                           
                         </tr>
                         <?php endforeach; ?>
                         <?php endif; ?>

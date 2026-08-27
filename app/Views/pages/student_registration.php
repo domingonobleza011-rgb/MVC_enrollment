@@ -549,10 +549,16 @@ footer {
                     <div class="col-12 col-sm-4">
                         <div class="form-group">
                             <label>Email / Phone <span class="req">*</span></label>
-                            <input type="text" class="form-control" name="login_identity"
-                                   placeholder="email or phone number" required>
-                            <div class="valid-feedback">Looks good.</div>
-                            <div class="invalid-feedback">This field is required.</div>
+                            <input type="text"
+       class="form-control"
+       id="login_identity"
+       name="login_identity"
+       placeholder="email or phone number"
+       required>
+<div class="valid-feedback">Looks good.</div>
+<div class="invalid-feedback" id="loginIdentityFeedback">
+    Enter a valid email address or phone number.
+</div>
                         </div>
                     </div>
                     <div class="col-12 col-sm-4">
@@ -641,6 +647,74 @@ footer {
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const loginIdentity = document.getElementById("login_identity");
+    const form = loginIdentity.closest("form");
+
+    // Phone number: numbers only, 11 digits
+    const phonePattern = /^[0-9]{11}$/;
+
+    // Email: must contain @ and a valid domain
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function validateLoginIdentity() {
+        const value = loginIdentity.value.trim();
+
+        // Empty field
+        if (value === "") {
+            loginIdentity.setCustomValidity("This field is required.");
+            return false;
+        }
+
+        // If it contains only numbers, treat it as a phone number
+        if (/^[0-9]+$/.test(value)) {
+            if (phonePattern.test(value)) {
+                loginIdentity.setCustomValidity("");
+                return true;
+            } else {
+                loginIdentity.setCustomValidity(
+                    "Phone number must contain exactly 11 digits."
+                );
+                return false;
+            }
+        }
+
+        // Otherwise, treat it as an email
+        if (!value.includes("@")) {
+            loginIdentity.setCustomValidity(
+                "Email address must contain the @ symbol."
+            );
+            return false;
+        }
+
+        if (!emailPattern.test(value)) {
+            loginIdentity.setCustomValidity(
+                "Please enter a valid email address."
+            );
+            return false;
+        }
+
+        loginIdentity.setCustomValidity("");
+        return true;
+    }
+
+    // Validate while the user types
+    loginIdentity.addEventListener("input", validateLoginIdentity);
+
+    // Validate when leaving the field
+    loginIdentity.addEventListener("blur", validateLoginIdentity);
+
+    // Validate before submitting
+    form.addEventListener("submit", function (event) {
+        if (!validateLoginIdentity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            loginIdentity.reportValidity();
+        }
+    });
+});
+</script>
 <script>
     // Password toggle
     $(".toggle-password").on("click", function () {
