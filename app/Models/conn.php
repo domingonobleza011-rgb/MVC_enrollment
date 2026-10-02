@@ -1,7 +1,7 @@
 <?php
 	
  
-	$conn = new PDO( 'mysql:host=sql300.infinityfree.com;dbname=if0_41932978_eusebia_final', 'if0_41932978', 'eusebia011');
+	$conn = new PDO( 'mysql:host=sql213.infinityfree.com;dbname=if0_42052089_eusebia', 'if0_42052089', 'eusebia011');
 	if(!$conn){
 		die("Error: Failed to connect to database!");
 	}

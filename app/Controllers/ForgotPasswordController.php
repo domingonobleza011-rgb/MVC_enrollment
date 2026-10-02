@@ -20,7 +20,93 @@ require_once(MODELS_PATH . '/conn.php');
 $message      = '';
 $message_type = '';
 
+// ---- Phone number + security question recovery (students only) ----------
+$active_tab     = 'email';
+$phone_step     = 'phone';   // 'phone' | 'answer' | 'done'
+$phone_question = null;
+$phone_message  = '';
+$phone_message_type = '';
+
+// ---- Email + security question recovery (students only, instant path) --
+$email_step     = 'email';   // 'email' | 'answer' | 'done'
+$email_question = null;
+$email_message  = '';
+$email_message_type = '';
+
+if (isset($_POST['phone_lookup'])) {
+    $active_tab = 'phone';
+    require_once(MODELS_PATH . '/student.class.php');
+
+    $phone = trim($_POST['phone'] ?? '');
+    if ($phone === '') {
+        $phone_message = 'Please enter your phone number.';
+        $phone_message_type = 'danger';
+    } else {
+        $result = $studenteusebia->forgot_password_lookup_phone($phone);
+        if ($result['found']) {
+            $phone_step     = 'answer';
+            $phone_question = $result['question'];
+        } else {
+            $phone_message = "We couldn't find a student account with that phone number and a security question set. Try the Email tab instead, or contact the registrar.";
+            $phone_message_type = 'danger';
+        }
+    }
+}
+
+if (isset($_POST['phone_reset'])) {
+    $active_tab = 'phone';
+    require_once(MODELS_PATH . '/student.class.php');
+
+    $answer        = $_POST['security_answer'] ?? '';
+    $newpassword   = $_POST['newpassword'] ?? '';
+    $checkpassword = $_POST['checkpassword'] ?? '';
+
+    $result = $studenteusebia->forgot_password_reset_via_phone($answer, $newpassword, $checkpassword);
+
+    if ($result['success']) {
+        $phone_step = 'done';
+        $phone_message = $result['message'];
+        $phone_message_type = 'success';
+    } else {
+        $phone_message = $result['message'];
+        $phone_message_type = 'danger';
+
+        // Re-show the answer step with the same question, unless the
+        // recovery session itself expired — then send them back to step 1.
+        $id_student = $_SESSION['pwd_recovery_student_id'] ?? null;
+        $phone_question = $id_student ? $studenteusebia->get_current_security_question($id_student) : null;
+        $phone_step = $phone_question ? 'answer' : 'phone';
+    }
+}
+
+if (isset($_POST['email_reset'])) {
+    $active_tab = 'email';
+    require_once(MODELS_PATH . '/student.class.php');
+
+    $answer        = $_POST['security_answer'] ?? '';
+    $newpassword   = $_POST['newpassword'] ?? '';
+    $checkpassword = $_POST['checkpassword'] ?? '';
+
+    $result = $studenteusebia->forgot_password_reset_via_email($answer, $newpassword, $checkpassword);
+
+    if ($result['success']) {
+        $email_step = 'done';
+        $email_message = $result['message'];
+        $email_message_type = 'success';
+    } else {
+        $email_message = $result['message'];
+        $email_message_type = 'danger';
+
+        // Re-show the answer step with the same question, unless the
+        // recovery session itself expired — then send them back to step 1.
+        $id_student = $_SESSION['pwd_recovery_student_id'] ?? null;
+        $email_question = $id_student ? $studenteusebia->get_current_security_question($id_student) : null;
+        $email_step = $email_question ? 'answer' : 'email';
+    }
+}
+
 if (isset($_POST['send_reset'])) {
+    $active_tab = 'email';
     $email = trim($_POST['email'] ?? '');
 
     if (empty($email)) {
@@ -30,6 +116,16 @@ if (isset($_POST['send_reset'])) {
         $message = 'Please enter a valid email address.';
         $message_type = 'danger';
     } else {
+        // If this email belongs to a student who has a security question set
+        // up, offer an instant reset via that question instead of making
+        // them wait on an emailed link.
+        require_once(MODELS_PATH . '/student.class.php');
+        $sq_result = $studenteusebia->forgot_password_lookup_email($email);
+
+        if ($sq_result['found']) {
+            $email_step     = 'answer';
+            $email_question = $sq_result['question'];
+        } else {
         // Ensure the reset-tracking table (and its account_type column) exists.
         // Lazily created/upgraded so this works even if the table predates this change.
         try {
@@ -160,6 +256,7 @@ if (isset($_POST['send_reset'])) {
             // Same message whether found or not (prevents email enumeration)
             $message      = 'If that email is registered, a password reset link has been sent. Please check your inbox (and spam folder).';
             $message_type = 'success';
+        }
         }
     }
 }

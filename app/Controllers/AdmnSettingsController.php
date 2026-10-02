@@ -11,24 +11,19 @@ class AdmnSettingsController extends Controller
     $userdetails = $eusebia->get_userdata();
     $eusebia->validate_admin();
 
-    // Handle the settings form submit (enrollment_open toggle + per-grade capacity)
+    // Handle the settings form submit (enrollment_open toggle + schedule + per-grade capacity)
     $eusebia->save_enrollment_settings();
 
-    // Current values to populate the form
-    $enrollment_open = $eusebia->is_enrollment_open();
+    // Handle the Registrar Details form submit (name + signature image, used on approval PDFs)
+    $eusebia->save_registrar_settings();
 
-    $grades = [
-        'seven'  => 'Grade 7',
-        'eight'  => 'Grade 8',
-        'nine'   => 'Grade 9',
-        'ten'    => 'Grade 10',
-        'eleven' => 'Grade 11',
-        'twelve' => 'Grade 12',
-    ];
-    $capacities = [];
-    foreach ($grades as $key => $label) {
-        $capacities[$key] = $eusebia->get_capacity($key); // null = unlimited
-    }
+    // Current values to populate the form
+    $manual_enrollment_open = $eusebia->is_enrollment_manually_enabled();
+    $enrollment_schedule    = $eusebia->get_enrollment_schedule();
+    $enrollment_open        = $eusebia->is_enrollment_open();
+
+    $registrar_name          = $eusebia->get_registrar_name();
+    $registrar_signature_url = $eusebia->get_registrar_signature_url();
 
         $this->view('pages/admn_settings', get_defined_vars());
     }

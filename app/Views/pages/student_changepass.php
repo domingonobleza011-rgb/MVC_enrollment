@@ -24,6 +24,10 @@
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- SweetAlert2 (same success/error dialog used on the enrollment page) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- AOS Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
@@ -192,6 +196,25 @@
             background: linear-gradient(135deg, #1f3a6b, #2a6f9c);
             box-shadow: 0 8px 18px rgba(11,43,92,0.25);
         }
+        .btn-security-link {
+            display: block;
+            text-align: center;
+            background: #eef2ff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 40px;
+            padding: 0.8rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f3a5f;
+            text-decoration: none;
+            margin-top: 0.9rem;
+            transition: all 0.2s;
+        }
+        .btn-security-link:hover {
+            background: #e2e8f0;
+            transform: translateY(-1px);
+            color: #1f3a5f;
+        }
 
         /* ========== BACK TO TOP ========== */
         .top-link {
@@ -277,9 +300,29 @@
 
     <button class="btn btn-change" type="submit" name="student_changepass">Update Password</button>
 </form>
+        <a href="student_security_question.php" class="btn btn-security-link">
+            <i class="fas fa-shield-halved me-2"></i> Manage Security Question
+        </a>
         </div>
     </div>
 </div>
+
+<?php if (!empty($_SESSION['swal'])):
+    $swal = $_SESSION['swal'];
+    unset($_SESSION['swal']);
+?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        icon:  '<?= $swal['icon'] ?>',
+        title: '<?= addslashes($swal['title']) ?>',
+        text:  '<?= addslashes($swal['text'] ?? '') ?>',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0b2b5c'
+    });
+});
+</script>
+<?php endif; ?>
 
 <!-- Back to Top Button -->
 <a href="#" class="top-link" id="backToTopBtn">

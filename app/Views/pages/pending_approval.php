@@ -120,10 +120,18 @@
                 <div class="icon-wrap"><i class="fas fa-hourglass-half"></i></div>
                 <h5>Awaiting Admin Approval</h5>
                 <?php if ($name): ?>
-                    <p>Thanks, <strong><?= htmlspecialchars($name) ?></strong> — your email is verified.</p>
+                    <?php if ($contact_type === 'phone'): ?>
+                        <p>Thanks, <strong><?= htmlspecialchars($name) ?></strong> — your phone number is on file.</p>
+                    <?php else: ?>
+                        <p>Thanks, <strong><?= htmlspecialchars($name) ?></strong> — your email is verified.</p>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <p>Your account is now waiting for a school administrator to review and approve it.</p>
-                <p>You'll receive an email once your account has been approved and you can log in.</p>
+                <?php if ($contact_type === 'phone'): ?>
+                    <p>Once your account has been approved, you can log in again using your phone number.</p>
+                <?php else: ?>
+                    <p>You'll receive an email once your account has been approved and you can log in.</p>
+                <?php endif; ?>
                 <a href="login.php" class="btn-back"><i class="fas fa-arrow-left me-2"></i> Back to Login</a>
             </div>
         </div>

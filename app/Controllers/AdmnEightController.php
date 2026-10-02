@@ -19,6 +19,7 @@ class AdmnEightController extends Controller
     $eusebia->bulk_archive_eight();
     $eusebia->admin_add_enrollee('eight');
     $eusebia->mark_requirements_complete('eight');
+    $eusebia->edit_enrollee('eight');
     $view = $eusebia->view_eight();
     $id_student = $_GET['id_student'] ?? null;
     $student = $id_student ? $studenteusebia->get_single_eight($id_student) : null;

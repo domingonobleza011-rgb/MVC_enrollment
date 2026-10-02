@@ -4,7 +4,7 @@
  * ----------
  * Sends a student's uploaded enrollment documents (PSA birth certificate,
  * Form 137, Good Moral, Brigada Eskwela slip, 4Ps/IP certificates, etc.)
- * to Mistral AI's Chat Completions API (vision + document understanding)
+ * to Google's Gemini API (vision + document understanding)
  * so it can:
  *   1. Identify what each document actually is.
  *   2. Read the name printed on it.
@@ -55,10 +55,10 @@ class DocumentAI {
             ];
         }
 
-        if (!defined('MISTRAL_API_KEY') || trim(MISTRAL_API_KEY) === '') {
+        if (!defined('GEMINI_API_KEY') || trim(GEMINI_API_KEY) === '') {
             return [
                 'success'     => false,
-                'error'       => 'AI reviewer is not configured yet. Add your Mistral API key in app/Models/ai_config.php.',
+                'error'       => 'AI reviewer is not configured yet. Add your Gemini API key in app/Models/ai_config.php.',
                 'analyzed_at' => $analyzedAt,
             ];
         }
@@ -93,21 +93,12 @@ class DocumentAI {
             }
 
             $data = base64_encode(file_get_contents($path));
-            $contentBlocks[] = ['type' => 'text', 'text' => 'Document file name: ' . basename($path)];
+            $contentBlocks[] = ['text' => 'Document file name: ' . basename($path)];
 
-            if ($mime === 'application/pdf') {
-                // PDFs go through Mistral's document_url block (built-in OCR handles it).
-                $contentBlocks[] = [
-                    'type'         => 'document_url',
-                    'document_url' => 'data:' . $mime . ';base64,' . $data,
-                ];
-            } else {
-                // Images go through the vision image_url block.
-                $contentBlocks[] = [
-                    'type'      => 'image_url',
-                    'image_url' => 'data:' . $mime . ';base64,' . $data,
-                ];
-            }
+            // Gemini takes both PDFs and images as inline_data parts.
+            $contentBlocks[] = [
+                'inline_data' => ['mime_type' => $mime, 'data' => $data],
+            ];
 
             $runningBytes += $estimatedEncodedSize;
             $count++;
@@ -124,22 +115,22 @@ class DocumentAI {
 
         $formDataJson = json_encode($formData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $contentBlocks[] = [
-            'type' => 'text',
             'text' => "Here is the data the student typed into the enrollment form:\n" . $formDataJson .
                       "\n\nCompare it against what you read on the documents above and respond with the JSON object only, as instructed.",
         ];
 
+        $model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-2.5-flash';
+
         $payload = [
-            'model'    => defined('MISTRAL_MODEL') ? MISTRAL_MODEL : 'pixtral-12b-2409',
-            'messages' => [
-                ['role' => 'system', 'content' => self::buildSystemPrompt()],
-                ['role' => 'user', 'content' => $contentBlocks],
+            'systemInstruction' => ['parts' => [['text' => self::buildSystemPrompt()]]],
+            'contents'          => [['role' => 'user', 'parts' => $contentBlocks]],
+            'generationConfig'  => [
+                'temperature'      => 0.1,
+                'responseMimeType' => 'application/json',
             ],
-            'response_format' => ['type' => 'json_object'],
-            'temperature'      => 0.1,
         ];
 
-        $response = self::callMistralApi($payload);
+        $response = self::callGeminiApi($payload, $model);
 
         if (!$response['success']) {
             $response['analyzed_at'] = $analyzedAt;
@@ -159,7 +150,7 @@ class DocumentAI {
 
         $parsed['success']     = true;
         $parsed['analyzed_at'] = $analyzedAt;
-        $parsed['model']       = defined('MISTRAL_MODEL') ? MISTRAL_MODEL : 'pixtral-12b-2409';
+        $parsed['model']       = $model;
         if (!empty($skipped)) $parsed['skipped'] = $skipped;
 
         return $parsed;
@@ -176,6 +167,8 @@ For each document image/file you are shown, decide which of these types it most 
 For each document, also read off the student's full name if it is visible on it. Leave the field blank if it isn't visible on that document.
 
 NAME MATCHING (per document): Whenever a student's full name is visible anywhere on a document, compare it directly against the "Full Name" the student typed into the enrollment form. Minor formatting differences (e.g. "Dela Cruz, Juan" vs "Juan Dela Cruz", extra middle initials, capitalization) still count as a match. Set that document's "name_match" field to exactly "Matched" if the names agree, "Not Matched" if they genuinely differ, or "Not visible on this document" if no name appears on that file at all.
+
+if you detect its not document mention needed automatic its not matched.
 
 Respond with ONLY a single JSON object matching exactly this structure:
 
@@ -196,7 +189,7 @@ Respond with ONLY a single JSON object matching exactly this structure:
 PROMPT;
     }
 
-    /** Maps a file extension to a Mistral-supported MIME type, or null if unsupported. */
+    /** Maps a file extension to a Gemini-supported MIME type, or null if unsupported. */
     private static function mimeForExt(string $ext) {
         $map = [
             'pdf'  => 'application/pdf',
@@ -206,18 +199,13 @@ PROMPT;
             'gif'  => 'image/gif',
             'webp' => 'image/webp',
         ];
-        // .doc/.docx and anything else: Mistral's inline vision/document input can't read these directly.
+        // .doc/.docx and anything else: Gemini's inline input can't read these directly.
         return $map[$ext] ?? null;
     }
 
-    /**
-     * Calls Mistral's Chat Completions API (vision + built-in document OCR).
-     * See https://docs.mistral.ai/api/endpoint/chat and
-     * https://docs.mistral.ai/capabilities/vision/ for details.
-     * Returns ['success'=>bool, 'text'=>string] or ['success'=>false,'error'=>string].
-     */
-    private static function callMistralApi(array $payload): array {
-        $url = 'https://api.mistral.ai/v1/chat/completions';
+
+    private static function callGeminiApi(array $payload, string $model): array {
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -225,10 +213,10 @@ PROMPT;
             CURLOPT_POST           => true,
             CURLOPT_HTTPHEADER     => [
                 'Content-Type: application/json',
-                'Authorization: Bearer ' . MISTRAL_API_KEY,
+                'x-goog-api-key: ' . trim(GEMINI_API_KEY),
             ],
             CURLOPT_POSTFIELDS     => json_encode($payload),
-            CURLOPT_TIMEOUT        => 60,
+            CURLOPT_TIMEOUT        => 90,
             CURLOPT_CONNECTTIMEOUT => 15,
         ]);
 
@@ -245,16 +233,16 @@ PROMPT;
         $decoded = json_decode($body, true);
 
         if ($httpCode !== 200) {
-            $msg = $decoded['message']
-                ?? ($decoded['error']['message'] ?? null);
+            $msg = $decoded['error']['message'] ?? null;
             if ($msg === null) {
-                // Unexpected error shape — show a trimmed snippet of the raw
-                // body so it's actually debuggable instead of just "HTTP 401".
                 $snippet = trim($body) === '' ? '(empty response body)' : substr(trim($body), 0, 300);
                 $msg = 'HTTP ' . $httpCode . ' — ' . $snippet;
             }
-            if ($httpCode === 401) {
-                $msg .= ' (check that MISTRAL_API_KEY in app/Models/ai_config.php is your real key, with no extra spaces/quotes/placeholder text)';
+            if ($httpCode === 400 || $httpCode === 401 || $httpCode === 403) {
+                $msg .= ' (check that GEMINI_API_KEY in app/Models/ai_config.php is your real key, with no extra spaces/quotes/placeholder text)';
+            }
+            if ($httpCode === 404) {
+                $msg .= ' (model name not found — check GEMINI_MODEL in app/Models/ai_config.php)';
             }
             if ($httpCode === 429) {
                 $msg .= ' (free-tier rate limit reached — try again in a bit, or re-analyze this record later)';
@@ -262,8 +250,16 @@ PROMPT;
             return ['success' => false, 'error' => 'AI service error: ' . $msg];
         }
 
-        $text = $decoded['choices'][0]['message']['content'] ?? '';
-        $finishReason = $decoded['choices'][0]['finish_reason'] ?? '';
+        if (!empty($decoded['promptFeedback']['blockReason'])) {
+            return ['success' => false, 'error' => 'AI service blocked the request (reason: ' . $decoded['promptFeedback']['blockReason'] . ').'];
+        }
+
+        $text = '';
+        foreach (($decoded['candidates'][0]['content']['parts'] ?? []) as $part) {
+            if (!empty($part['thought'])) continue;
+            $text .= $part['text'] ?? '';
+        }
+        $finishReason = $decoded['candidates'][0]['finishReason'] ?? '';
 
         if ($text === '' && $finishReason !== '') {
             return ['success' => false, 'error' => 'AI service returned no content (finish reason: ' . $finishReason . ').'];

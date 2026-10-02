@@ -22,15 +22,15 @@ $modalId        = 'addEnrolleeModal_' . $grade;
     <i class="fas fa-user-plus mr-1"></i> Add Student
 </button>
 
-<div class="modal fade" id="<?= $modalId ?>" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade plain-modal" id="<?= $modalId ?>" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width:800px;">
         <div class="modal-content" style="border-radius:14px;overflow:hidden;">
             <form action="" method="post" id="addEnrolleeForm_<?= $grade ?>">
-                <div class="modal-header" style="background:linear-gradient(135deg,#0b2b5c,#1f5a9e);color:#fff;">
+                <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="fas fa-user-plus mr-2"></i>Add Grade <?= htmlspecialchars($gradeNumber) ?> Student
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;"><span>&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
 
                 <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
@@ -77,9 +77,21 @@ $modalId        = 'addEnrolleeModal_' . $grade;
                     <hr>
                     <h6 class="font-weight-bold text-primary">Learner Information</h6>
                     <div class="form-row">
-                        <div class="form-group col-md-4"><label>Last Name</label><input type="text" name="lname" class="form-control text-uppercase-field" pattern="[A-Za-z ]+" title="Letters and spaces only" required></div>
-                        <div class="form-group col-md-4"><label>First Name</label><input type="text" name="fname" class="form-control text-uppercase-field" pattern="[A-Za-z ]+" title="Letters and spaces only" required></div>
-                        <div class="form-group col-md-4"><label>Middle Initial</label><input type="text" name="mi" class="form-control text-uppercase-field" pattern="[A-Za-z ]+" title="Letters and spaces only" required></div>
+                        <div class="form-group col-md-3"><label>Last Name</label><input type="text" name="lname" class="form-control text-uppercase-field" pattern="[A-Za-z ]+" title="Letters and spaces only" required></div>
+                        <div class="form-group col-md-3"><label>First Name</label><input type="text" name="fname" class="form-control text-uppercase-field" pattern="[A-Za-z ]+" title="Letters and spaces only" required></div>
+                        <div class="form-group col-md-3"><label>Middle Name</label><input type="text" name="mi" class="form-control text-uppercase-field" pattern="[A-Za-z ]+" title="Letters and spaces only" required></div>
+                        <div class="form-group col-md-3">
+                            <label>Suffix <small class="text-muted">(optional)</small></label>
+                            <select name="ext" class="form-control">
+                                <option value="">None</option>
+                                <option value="Jr.">Jr.</option>
+                                <option value="Sr.">Sr.</option>
+                                <option value="II">II</option>
+                                <option value="III">III</option>
+                                <option value="IV">IV</option>
+                                <option value="V">V</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-4"><label>Birthdate</label><input type="date" name="bdate" class="form-control" required></div>
@@ -109,14 +121,14 @@ $modalId        = 'addEnrolleeModal_' . $grade;
                             <label class="font-weight-semibold">Father's Name</label>
                             <input type="text" name="ffname" class="form-control mb-2 text-uppercase-field" placeholder="First Name" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
                             <input type="text" name="flname" class="form-control mb-2 text-uppercase-field" placeholder="Last Name" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
-                            <input type="text" name="fmi" class="form-control mb-2 text-uppercase-field" placeholder="Middle Initial" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
+                            <input type="text" name="fmi" class="form-control mb-2 text-uppercase-field" placeholder="Middle Name" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
                             <input type="text" name="contact_f" class="form-control" placeholder="Contact No." required>
                         </div>
                         <div class="form-group col-md-6">
                             <label class="font-weight-semibold">Mother's Maiden Name</label>
                             <input type="text" name="mfname" class="form-control mb-2 text-uppercase-field" placeholder="First Name" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
                             <input type="text" name="mlname" class="form-control mb-2 text-uppercase-field" placeholder="Last Name" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
-                            <input type="text" name="mmi" class="form-control mb-2 text-uppercase-field" placeholder="Middle Initial" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
+                            <input type="text" name="mmi" class="form-control mb-2 text-uppercase-field" placeholder="Middle Name" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
                             <input type="text" name="contact_m" class="form-control" placeholder="Contact No." required>
                         </div>
                     </div>

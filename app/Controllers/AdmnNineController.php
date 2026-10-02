@@ -19,6 +19,7 @@ class AdmnNineController extends Controller
     $eusebia->bulk_archive_nine();
     $eusebia->admin_add_enrollee('nine');
     $eusebia->mark_requirements_complete('nine');
+    $eusebia->edit_enrollee('nine');
     $view = $eusebia->view_nine();
     $id_student = $_GET['id_student'] ?? null;
     $student = $id_student ? $studenteusebia->get_single_nine($id_student) : null;

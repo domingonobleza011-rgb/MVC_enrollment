@@ -19,6 +19,7 @@ class AdmnTenController extends Controller
     $eusebia->bulk_archive_ten();
     $eusebia->admin_add_enrollee('ten');
     $eusebia->mark_requirements_complete('ten');
+    $eusebia->edit_enrollee('ten');
     $view = $eusebia->view_ten();
     $id_student = $_GET['id_student'] ?? null;
     $student = $id_student ? $studenteusebia->get_single_ten($id_student) : null;

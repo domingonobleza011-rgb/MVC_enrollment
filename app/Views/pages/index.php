@@ -9,27 +9,35 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/pwa/icon-96x96.png">
 <meta name="theme-color" content="#0b2b5c">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
 <style>
+/* Original palette: navy + gold, on the simpler layout */
+:root{
+--navy:#0b2b5c;
+--navy-2:#0f3b7a;
+--gold:#ffd700
+}
+
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
-font-family:'Inter',sans-serif;
+font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
 background:linear-gradient(145deg,#f8faff 0%,#f0f4fe 100%);
 color:#1a2c3e;
-min-height:100vh
+min-height:100vh;
+min-height:100dvh;
+display:flex;
+flex-direction:column
 }
 
 /* NAVBAR */
 .navbar-custom{
-background:linear-gradient(135deg,#0b2b5c 0%,#0f3b7a 100%);
-padding:0;
-box-shadow:0 4px 20px rgba(0,0,0,.12);
+background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);
 position:sticky;
 top:0;
 z-index:1000
@@ -38,14 +46,14 @@ z-index:1000
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:.85rem 1.5rem;
+padding:.8rem 1.5rem;
 gap:.75rem
 }
 .navbar-brand{
-font-family:'Playfair Display',serif;
 font-weight:700;
-font-size:clamp(1rem,3.5vw,1.4rem);
-color:white!important;
+font-size:clamp(1rem,3.5vw,1.25rem);
+letter-spacing:.02em;
+color:#fff!important;
 text-decoration:none;
 display:flex;
 align-items:center;
@@ -60,15 +68,15 @@ white-space:nowrap
 }
 .nav-buttons{
 display:flex;
-gap:10px;
+gap:8px;
 flex-shrink:0
 }
 .btn-nav{
-border-radius:40px;
-padding:7px 18px;
+border-radius:8px;
+padding:7px 16px;
 font-weight:500;
 font-size:.875rem;
-transition:all .2s;
+transition:background-color .15s;
 text-decoration:none;
 display:inline-flex;
 align-items:center;
@@ -78,35 +86,35 @@ white-space:nowrap
 .btn-login{
 background:rgba(255,255,255,.12);
 border:1px solid rgba(255,255,255,.28);
-color:white
+color:#fff
 }
 .btn-login:hover{
 background:rgba(255,255,255,.25);
-color:white
+color:#fff
 }
 .btn-register{
 background:rgba(255,215,0,.8);
-border:1px solid #ffd700;
-color:#0b2b5c;
+border:1px solid var(--gold);
+color:var(--navy);
 font-weight:600
 }
 .btn-register:hover{
-background:#ffd700;
-transform:translateY(-2px);
-color:#0b2b5c
+background:var(--gold);
+color:var(--navy)
 }
 
 /* HERO */
 .hero{
 position:relative;
 width:100%;
-min-height:360px;
-padding:2rem 0 2.75rem;
+min-height:300px;
+padding:2rem 0;
 overflow:hidden;
 display:flex;
 align-items:center;
 justify-content:center;
-text-align:center
+text-align:center;
+background:var(--navy)
 }
 .hero-bg{
 position:absolute;
@@ -129,56 +137,54 @@ padding:1rem 1.5rem
 }
 .school-sub{
 color:rgba(255,215,0,.9);
-font-size:.85rem;
-letter-spacing:1px;
-margin:0 0 .5rem
+font-size:.8rem;
+letter-spacing:.08em;
+text-transform:uppercase;
+margin:0 0 .6rem
 }
 .seal-ring{
-width:100px;
-height:100px;
-margin:0 auto .7rem;
-background:rgba(255,255,255,.12);
-border:1px solid rgba(255,255,255,.2);
+width:88px;
+height:88px;
+margin:0 auto .8rem;
+background:#fff;
 border-radius:50%;
 display:flex;
 align-items:center;
-justify-content:center;
-box-shadow:0 8px 25px rgba(0,0,0,.18)
+justify-content:center
 }
 .seal-ring img{
-width:78px;
-height:78px;
+width:100%;
+height:100%;
 object-fit:contain;
-filter:brightness(1.05) contrast(1.1);
-background:rgba(255,255,255,.92);
-border-radius:50%;
-padding:6px
+padding:6px;
+border-radius:50%
 }
 .school-name{
-font-family:'Playfair Display',serif;
-font-size:clamp(1.3rem,4.5vw,2.1rem);
+font-size:clamp(1.3rem,4.5vw,2rem);
 font-weight:700;
-color:white;
+line-height:1.25;
+color:#fff;
 text-shadow:0 2px 8px rgba(0,0,0,.3);
 max-width:700px;
 margin:0 auto
 }
 .address{
-font-family:'Playfair Display',serif;
-color:white;
+font-size:.95rem;
+font-weight:400;
+color:#fff;
 text-shadow:0 2px 8px rgba(0,0,0,.3);
-margin:0 auto
+margin:.4rem auto 0
 }
 .divider-gold{
 width:70px;
 height:2px;
-background:linear-gradient(90deg,transparent,#ffd700,transparent);
-margin:.6rem auto
+background:linear-gradient(90deg,transparent,var(--gold),transparent);
+margin:.9rem auto
 }
 .hero-caption{
 color:rgba(255,255,255,.75);
 font-size:.82rem;
-letter-spacing:.5px
+letter-spacing:.04em
 }
 
 /* MAIN CONTENT */
@@ -186,65 +192,43 @@ letter-spacing:.5px
 width:100%;
 max-width:1600px;
 margin:0 auto;
-padding:0 2rem 2rem
+padding:0 2rem 2rem;
+flex:1 0 auto
 }
 
-/* HORIZONTAL CARDS */
+/* CARDS (Vision / Mission / Core Values) */
 .card-section{
 display:grid;
 grid-template-columns:repeat(3,minmax(0,1fr));
-gap:2rem;
-margin-top:1rem;
-position:relative;
-z-index:5
+gap:1.5rem;
+margin-top:1.5rem
 }
-
-/* CARDS */
 .mv-card{
-background:rgba(255,255,255,.98);
-border-radius:18px;
-box-shadow:0 10px 25px -8px rgba(0,0,0,.12);
+background:#fff;
+border:1px solid #e2e8f0;
+border-radius:12px;
+box-shadow:0 2px 10px rgba(0,0,0,.06);
 overflow:hidden;
 display:flex;
 flex-direction:column;
-height:100%;
-transition:transform .25s ease,box-shadow .25s ease
+height:100%
 }
-.mv-card:hover{
-transform:translateY(-5px);
-box-shadow:0 18px 30px -10px rgba(0,0,0,.16)
-}
-
-/* CARD HEADER */
 .card-header{
-padding:1.2rem 1.4rem .85rem;
+padding:1rem 1.25rem;
 display:flex;
 align-items:center;
-gap:.7rem;
+background:transparent;
 border-bottom:1px solid #eef2f8
 }
-
-/* CARD TITLE */
 .card-label{
-font-size:1.4rem;
-font-weight:700;
-font-family:'Playfair Display',serif;
-color:#0b2b5c;
-line-height:1.15;
+font-size:1.1rem;
+font-weight:600;
+color:var(--navy);
+line-height:1.2;
 margin:0
 }
-.card-tagline{
-font-size:.7rem;
-text-transform:uppercase;
-letter-spacing:1px;
-color:#69788a;
-margin-top:.2rem;
-margin-bottom:0
-}
-
-/* CARD BODY */
 .card-body{
-padding:1.15rem 1.4rem 1.4rem;
+padding:1.1rem 1.25rem 1.25rem;
 font-size:.95rem;
 line-height:1.7;
 color:#2c3e4e;
@@ -265,45 +249,38 @@ margin:.4rem 0 0
 }
 .mission-list li{
 position:relative;
-padding-left:1.25rem;
+padding-left:1.1rem;
 margin-bottom:.5rem
 }
 .mission-list li::before{
-content:"✓";
+content:'';
 position:absolute;
 left:0;
-top:1px;
-width:18px;
-height:18px;
+top:.72em;
+width:6px;
+height:6px;
 border-radius:50%;
-background:#e4f5e9;
-color:#27834a;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:.65rem;
-font-weight:700
+background:rgba(11,43,92,.45)
 }
 
 /* CORE VALUES */
 .values-grid{
 display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:12px;
-margin-top:.6rem
+grid-template-columns:1fr;
+gap:10px
 }
 .value-pill{
 background:#f8fafc;
-border-radius:10px;
-padding:1rem .9rem;
+border:1px solid #e2e8f0;
+border-radius:8px;
+padding:.85rem .9rem;
 display:flex;
 align-items:center;
-gap:9px;
-border:1px solid #e2e8f0
+gap:10px
 }
 .value-dot{
-width:10px;
-height:10px;
+width:8px;
+height:8px;
 border-radius:50%;
 flex-shrink:0
 }
@@ -311,7 +288,6 @@ flex-shrink:0
 .dot-green{background:#16a34a}
 .dot-purple{background:#9333ea}
 .dot-amber{background:#d97706}
-
 .value-text{
 font-weight:600;
 font-size:.9rem;
@@ -320,13 +296,12 @@ color:#334155
 
 /* FOOTER */
 .footer-custom{
+flex-shrink:0;
 background:#0b1f33;
 color:#cddcec;
-padding:1.2rem 1rem;
+padding:1.25rem 1rem;
 text-align:center;
-font-size:.8rem;
-border-top-left-radius:22px;
-border-top-right-radius:22px
+font-size:.8rem
 }
 
 /* BACK TO TOP */
@@ -334,21 +309,22 @@ border-top-right-radius:22px
 position:fixed;
 right:20px;
 bottom:20px;
-width:44px;
-height:44px;
+width:42px;
+height:42px;
 border-radius:50%;
-background:#0b2b5c;
-color:white;
+background:var(--navy);
+color:#fff;
 display:flex;
 align-items:center;
 justify-content:center;
 box-shadow:0 6px 16px rgba(0,0,0,.25);
 opacity:0;
 pointer-events:none;
-transition:opacity .25s ease, transform .25s ease;
+transition:opacity .25s ease,transform .25s ease;
 transform:translateY(10px);
 z-index:999
 }
+.top-link:hover{color:#fff}
 .top-link.show{
 opacity:1;
 pointer-events:auto;
@@ -373,27 +349,24 @@ padding:0 .8rem 1.5rem
 .card-section{
 grid-template-columns:1fr;
 gap:.9rem;
-margin-top:.8rem
+margin-top:1rem
 }
 .mv-card:last-child{
 grid-column:auto
 }
 .card-header{
-padding:.9rem 1rem .65rem
+padding:.85rem 1rem
 }
 .card-body{
 padding:.9rem 1rem 1.1rem;
-font-size:.85rem;
+font-size:.88rem;
 line-height:1.6
 }
 .card-label{
-font-size:1.15rem
-}
-.card-tagline{
-font-size:.62rem
+font-size:1.05rem
 }
 .value-text{
-font-size:.8rem
+font-size:.85rem
 }
 .values-grid{
 grid-template-columns:1fr 1fr
@@ -405,30 +378,29 @@ grid-template-columns:1fr 1fr
 display:none
 }
 .btn-nav{
-padding:8px 11px;
-border-radius:50%
+padding:8px 11px
 }
 }
 </style>
 </head>
 
 <body>
+<?php include(VIEWS_PATH . '/partials/admin_loading_overlay.php'); ?>
 
 <!-- NAVBAR -->
 <nav class="navbar-custom">
 <div class="navbar-inner">
 <a class="navbar-brand" href="#">
-<i class="bi bi-mortarboard-fill" style="flex-shrink:0;"></i>
-<span>EPAMNHS Portal</span>
+<span>EPAMNHS</span>
 </a>
 
 <div class="nav-buttons">
-<a href="login.php" class="btn-nav btn-login">
+<a href="login.php" class="btn-nav btn-login" data-loading-text="Taking you to login..." data-loading-icon="sign-in-alt">
 <i class="fas fa-sign-in-alt"></i>
 <span class="btn-label">Log in</span>
 </a>
 
-<a href="student_registration.php" class="btn-nav btn-register">
+<a href="student_registration.php" class="btn-nav btn-register" data-loading-text="Loading registration form..." data-loading-icon="user-plus">
 <i class="fas fa-user-plus"></i>
 <span class="btn-label">Register</span>
 </a>
@@ -465,7 +437,6 @@ border-radius:50%
 <div class="card-header">
 <div>
 <h2 class="card-label">Vision</h2>
-<p class="card-tagline">Our Aspiration</p>
 </div>
 </div>
 
@@ -481,7 +452,6 @@ border-radius:50%
 <div class="card-header">
 <div>
 <h2 class="card-label">Mission</h2>
-<p class="card-tagline">Our Purpose</p>
 </div>
 </div>
 
@@ -502,12 +472,10 @@ border-radius:50%
 <div class="card-header">
 <div>
 <h2 class="card-label">Core Values</h2>
-<p class="card-tagline">What We Stand For</p>
 </div>
 </div>
 
 <div class="card-body">
-<p>These values guide every learner, teacher, and staff member of EPAMNHS in living out the DepEd mandate:</p>
 <div class="values-grid">
 
 <div class="value-pill">
@@ -576,6 +544,19 @@ e.preventDefault();
 window.scrollTo({
 top:0,
 behavior:'smooth'
+});
+});
+
+// LOADING OVERLAY on Log in / Register tap (same overlay used across the
+// admin/login pages — see app/Views/partials/admin_loading_overlay.php)
+document.querySelectorAll('.btn-login,.btn-register').forEach(function(btn){
+btn.addEventListener('click',function(e){
+e.preventDefault();
+const destination=btn.getAttribute('href');
+const message=btn.getAttribute('data-loading-text')||'Loading...';
+const icon=btn.getAttribute('data-loading-icon')||'sync-alt';
+showAdminLoading(message,icon);
+window.location.href=destination;
 });
 });
 </script>

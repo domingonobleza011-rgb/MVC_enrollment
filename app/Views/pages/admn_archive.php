@@ -15,11 +15,12 @@
         font-size: 13px;
     }
     .archive-header {
-        background: linear-gradient(135deg, #0b2b5c 0%, #0f3b7a 100%);
-        color: white;
         padding: 18px 24px;
-        border-radius: 8px;
-        margin-bottom: 24px;
+    }
+    .archive-header .badge {
+        background: rgba(var(--edb-chart-rgb), 0.08);
+        color: var(--edb-ink) !important;
+        border: 1px solid var(--edb-border);
     }
     .empty-archive {
         text-align: center;
@@ -32,14 +33,14 @@
         display: none;
         align-items: center;
         gap: 10px;
-        background: #eaf4ff;
-        border: 1.5px solid #b3d4f5;
+        background: rgba(var(--edb-chart-rgb), 0.06);
+        border: 1.5px solid rgba(var(--edb-chart-rgb), 0.25);
         border-radius: 10px;
         padding: 10px 16px;
         margin-bottom: 12px;
         font-size: 13px;
         font-weight: 600;
-        color: #0b2b5c;
+        color: var(--edb-ink);
         flex-wrap: wrap;
     }
     .bulk-toolbar.show { display: flex; }
@@ -68,8 +69,8 @@
         transition: all 0.2s;
     }
     .btn-bulk-delete:hover { background: #e74c3c; color: white; }
-    .row-checkbox { cursor: pointer; width: 16px; height: 16px; accent-color: #0b2b5c; }
-    #selectAllChk { cursor: pointer; width: 16px; height: 16px; accent-color: #0b2b5c; }
+    .row-checkbox { cursor: pointer; width: 16px; height: 16px; accent-color: rgb(var(--edb-chart-rgb)); }
+    #selectAllChk { cursor: pointer; width: 16px; height: 16px; accent-color: rgb(var(--edb-chart-rgb)); }
     .delete-modal-overlay {
     display: none;
     position: fixed;
@@ -276,13 +277,71 @@
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(39,174,96,0.5);
 }
+
+/* ===== Dark mode support for restore/delete modals ===== */
+html[data-theme="dark"] .restore-modal,
+html[data-theme="dark"] .delete-modal {
+    background: #1a1f2b !important;
+}
+html[data-theme="dark"] .restore-modal h5,
+html[data-theme="dark"] .delete-modal h5 {
+    color: #eef0f4 !important;
+}
+html[data-theme="dark"] .restore-modal p,
+html[data-theme="dark"] .delete-modal p {
+    color: #9aa2b1 !important;
+}
+html[data-theme="dark"] .restore-modal p strong,
+html[data-theme="dark"] .delete-modal p strong {
+    color: #eef0f4 !important;
+}
+html[data-theme="dark"] .delete-modal .form-group label {
+    color: #d7dbe2 !important;
+}
+html[data-theme="dark"] .delete-modal textarea.form-control {
+    background-color: #232a38 !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: #d7dbe2 !important;
+}
+html[data-theme="dark"] .delete-modal textarea.form-control::placeholder {
+    color: rgba(215,219,226,0.4) !important;
+}
+html[data-theme="dark"] .restore-modal-info {
+    background: rgba(39,174,96,0.12) !important;
+    border-color: rgba(39,174,96,0.35) !important;
+    color: #6fcf97 !important;
+}
+html[data-theme="dark"] .delete-modal-warning {
+    background: rgba(243,156,18,0.12) !important;
+    border-color: rgba(243,156,18,0.35) !important;
+    color: #f5b041 !important;
+}
+html[data-theme="dark"] .restore-modal-icon {
+    background: linear-gradient(135deg, rgba(39,174,96,0.18), rgba(39,174,96,0.28)) !important;
+    border-color: rgba(39,174,96,0.45) !important;
+}
+html[data-theme="dark"] .delete-modal-icon {
+    background: linear-gradient(135deg, rgba(231,76,60,0.18), rgba(231,76,60,0.28)) !important;
+    border-color: rgba(231,76,60,0.45) !important;
+}
+html[data-theme="dark"] .btn-cancel-restore,
+html[data-theme="dark"] .btn-cancel-modal {
+    background: #232a38 !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: #d7dbe2 !important;
+}
+html[data-theme="dark"] .btn-cancel-restore:hover,
+html[data-theme="dark"] .btn-cancel-modal:hover {
+    background: #2a3242 !important;
+    border-color: rgba(255,255,255,0.28) !important;
+}
 </style>
 
 <!-- Begin Page Content -->
-<div class="container-fluid">
+<div class="container-fluid plain-page">
 
     <!-- Page Heading -->
-    <div class="archive-header d-flex align-items-center justify-content-between">
+    <div class="archive-header plain-banner d-flex align-items-center justify-content-between">
         <div>
             <h4 class="mb-1"><i class="fas fa-archive mr-2"></i>Archive</h4>
             <small class="opacity-75">Recently archived enrollment records. Restore or permanently delete them.</small>
@@ -367,9 +426,9 @@
                         </button>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="thead-light">
+                    <div class="enr-scroll">
+                        <table class="table table-hover mb-0 simple-table">
+                            <thead>
                                 <tr>
                                     <th><input type="checkbox" id="selectAllChk" title="Select All"></th>
                                     <th>#</th>
@@ -417,44 +476,32 @@
                                     </td>
                                     <td class="text-center">
                                         <?php $gt = $row['grade_table']; $rid = $row['record_id']; ?>
-                                        <!-- Single Restore -->
-                                        <form method="POST" style="display:inline;">
-                                            <input type="hidden" name="id_<?= $gt ?>" value="<?= $rid ?>">
-                                            <button type="button"
-                                                class="btn btn-sm d-inline-flex align-items-center gap-1"
-                                                title="Restore Record"
-                                                style="border: 1.5px solid #27ae60;
-                                                       background: rgba(39,174,96,0.08);
-                                                       color: #27ae60;
-                                                       border-radius: 8px;
-                                                       padding: 6px 12px;
-                                                       font-weight: 700;
-                                                       font-size: 0.75rem;
-                                                       transition: all 0.2s;"
-                                                onmouseover="this.style.background='#27ae60'; this.style.color='white'"
-                                                onmouseout="this.style.background='rgba(39,174,96,0.08)'; this.style.color='#27ae60'"
-                                                onclick="openRestoreModal(this, '<?= strtoupper(substr($gt,0,1)).substr($gt,1) ?>')">
-                                                <i class="fas fa-undo" style="font-size:0.72rem;"></i>
-                                                <span>Restore</span>
+                                        <div class="dropdown row-actions">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                                id="archDd<?= $gt . $rid ?>" data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
+                                                Actions
                                             </button>
-                                        </form>
-                                        <!-- Single Permanent Delete -->
-                                        <form method="POST" style="display:inline;" class="ml-1">
-                                            <input type="hidden" name="grade_table" value="<?= $gt ?>">
-                                            <input type="hidden" name="record_id" value="<?= $rid ?>">
-                                            <button type="button"
-                                                class="btn btn-sm"
-                                                title="Permanently Delete"
-                                                style="width: 32px; height: 32px; padding: 0; border-radius: 8px;
-                                                       border: 1.5px solid #e74c3c; background: rgba(231,76,60,0.08);
-                                                       color: #e74c3c; display: inline-flex; align-items: center;
-                                                       justify-content: center; transition: all 0.2s;"
-                                                onmouseover="this.style.background='#e74c3c'; this.style.color='white'"
-                                                onmouseout="this.style.background='rgba(231,76,60,0.08)'; this.style.color='#e74c3c'"
-                                                onclick="openDeleteModal(this)">
-                                                <i class="fas fa-trash-alt" style="font-size:0.72rem;"></i>
-                                            </button>
-                                        </form>
+                                            <div class="dropdown-menu dropdown-menu-right row-actions-menu" aria-labelledby="archDd<?= $gt . $rid ?>">
+                                                <!-- Single Restore -->
+                                                <form method="POST">
+                                                    <input type="hidden" name="id_<?= $gt ?>" value="<?= $rid ?>">
+                                                    <button type="button" class="dropdown-item item-restore"
+                                                        onclick="openRestoreModal(this, '<?= strtoupper(substr($gt,0,1)).substr($gt,1) ?>')">
+                                                        <i class="fas fa-undo"></i>Restore
+                                                    </button>
+                                                </form>
+                                                <div class="dropdown-divider"></div>
+                                                <!-- Single Permanent Delete -->
+                                                <form method="POST">
+                                                    <input type="hidden" name="grade_table" value="<?= $gt ?>">
+                                                    <input type="hidden" name="record_id" value="<?= $rid ?>">
+                                                    <button type="button" class="dropdown-item item-reject"
+                                                        onclick="openDeleteModal(this)">
+                                                        <i class="fas fa-trash-alt"></i>Delete permanently
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>

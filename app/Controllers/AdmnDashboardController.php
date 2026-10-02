@@ -4,8 +4,6 @@ class AdmnDashboardController extends Controller
 {
     public function index()
     {
-    ini_set('display_errors',1);
-    error_reporting(E_ALL ^ E_WARNING);
     include(MODELS_PATH . '/student.class.php');
     $eusebia->validate_admin();
     $userdetails = $eusebia->get_userdata();

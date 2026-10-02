@@ -26,8 +26,8 @@
     </div>
 
     <div class="mb-3">
-        <label>Middle Initial</label>
-        <input type="text" name="mi" class="form-control" maxlength="2">
+        <label>Middle Name</label>
+        <input type="text" name="mi" class="form-control" maxlength="50">
     </div>
 
     <div class="mb-3">

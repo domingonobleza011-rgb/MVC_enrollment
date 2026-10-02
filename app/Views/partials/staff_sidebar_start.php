@@ -15,20 +15,27 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <style>
-        #accordionSidebar { background: linear-gradient(135deg,#0b2b5c 0%,#0f3b7a 100%) !important; }
+        /* White sidebar */
+        #accordionSidebar { background:#ffffff !important; border-right:1px solid #e3e6ec; box-shadow:0 0 24px rgba(11,43,92,.07); }
         #accordionSidebar .sidebar-brand,
-        #accordionSidebar .nav-item .nav-link { color: rgba(255,255,255,.8) !important; }
+        #accordionSidebar .sidebar-brand .sidebar-brand-text,
+        #accordionSidebar .sidebar-brand .sidebar-brand-icon { color:#0b2b5c !important; }
+        #accordionSidebar .nav-item .nav-link { color:#4a5568 !important; }
+        #accordionSidebar .nav-item .nav-link i { color:#9aa1b2 !important; }
         #accordionSidebar .nav-item .nav-link:hover,
-        #accordionSidebar .nav-item.active .nav-link { color:#fff !important; background:rgba(255,255,255,.12) !important; }
-        #accordionSidebar .sidebar-heading { color:rgba(255,255,255,.5) !important; }
-        #accordionSidebar hr.sidebar-divider { border-color:rgba(255,255,255,.15) !important; }
-        #sidebarToggle { background:rgba(255,255,255,.2) !important; }
-        #sidebarToggle:hover { background:rgba(255,255,255,.35) !important; }
+        #accordionSidebar .nav-item.active .nav-link { color:#0b2b5c !important; background:#eaf1fb !important; }
+        #accordionSidebar .nav-item .nav-link:hover i,
+        #accordionSidebar .nav-item.active .nav-link i { color:#1f5a9e !important; }
+        #accordionSidebar .sidebar-heading { color:#9aa1b2 !important; }
+        #accordionSidebar hr.sidebar-divider { border-color:#eef0f4 !important; }
+        #sidebarToggle { background:#f1f4f9 !important; }
+        #sidebarToggle:hover { background:#e2e8f2 !important; }
     </style>
+    <?php include(VIEWS_PATH . '/partials/swal_theme.php'); ?>
 </head>
 <body id="page-top">
 <div id="wrapper">
-    <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background:linear-gradient(135deg,#0b2b5c 0%,#0f3b7a 100%)!important;">
+    <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar">
         <a class="sidebar-brand d-flex align-items-center justify-content-center" href="staff_dashboard.php">
             <div class="sidebar-brand-icon"><i class="fas fa-chalkboard-teacher"></i></div>
             <div class="sidebar-brand-text mx-2">Teacher Portal</div>
@@ -69,7 +76,7 @@
         <div class="sidebar-heading">Advisory Class</div>
         <li class="nav-item">
             <a class="nav-link font-weight-bold" href="<?= $grade_url_map[$adviser_grade] ?>">
-                <i class="fas fa-fw fa-star" style="color:#ffd700;"></i>
+                <i class="fas fa-fw fa-star" style="color:#f59e0b;"></i>
                 <span><?= htmlspecialchars($adviser_grade) ?> <span class="badge badge-warning ml-1">Adviser</span></span>
             </a>
         </li>

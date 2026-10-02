@@ -46,10 +46,12 @@
         *, *::before, *::after { box-sizing: border-box; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            background-image: linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.65)), url('icons/Documents/eusebia.jpg');
+            background-size: cover;
+            background-position: center;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
         }
@@ -89,6 +91,9 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        .navbar-logo { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
+        @media (max-width: 480px) { .navbar-logo { width: 32px; height: 32px; } }
                 .btn-portal {
             border-radius: 40px;
             padding: 7px 18px;
@@ -190,7 +195,6 @@
             letter-spacing: .1em;
             text-transform: uppercase;
             color: var(--navy-light);
-            border-left: 3px solid var(--gold);
             padding-left: .55rem;
             margin: 1.6rem 0 1rem;
         }
@@ -399,38 +403,42 @@ footer {
 </head>
 
 <body>
+<?php include(VIEWS_PATH . '/partials/admin_loading_overlay.php'); ?>
 
 <!-- NAVBAR -->
 <nav class="navbar-custom">
     <div class="navbar-inner">
         <a class="navbar-brand" href="index.php">
-            <i class="bi bi-mortarboard-fill" style="flex-shrink:0;"></i>
-            <span>EPAMNHS Portal</span>
+            <img src="icons/Documents/eusebia.png" alt="EPAMNHS logo" class="navbar-logo">
+            <span>EPAMNHS</span>
         </a>
-        <a href="index.php" class="btn-portal">
+        <a href="index.php" class="btn-portal" onclick="showAdminLoading('Returning to login portal...', 'arrow-left'); window.location.href='login.php'; return false;">
             <i class="fas fa-arrow-left"></i>
-            <span class="btn-label">Back to Main Portal</span>
+            <span class="btn-label">Back to Login</span>
         </a>
     </div>
 </nav>
 
 <!-- MAIN -->
 <main>
-    <!-- Page heading -->
-    <div class="page-header">
-        <h1>Registration Form</h1>
-        <p>Please fill in all required fields accurately.</p>
-        <div class="divider"></div>
-    </div>
-
     <!-- Card -->
     <div class="form-card">
         <div class="form-card-header">
             <i class="fas fa-user-plus"></i>
-            <h2>New Student Registration</h2>
+            <h2>Account Registration</h2>
         </div>
 
         <div class="form-card-body">
+            <?php if (!empty($google_pending)): ?>
+            <div class="alert alert-info d-flex align-items-center gap-2 mb-4" style="border-radius:10px;">
+                <i class="fab fa-google"></i>
+                <div>
+                    Signed in as <strong><?= htmlspecialchars($google_pending['email']) ?></strong> with Google.
+                    Please finish this registration form to create your account — Google sign-in only verifies
+                    your email, it doesn't create the account by itself.
+                </div>
+            </div>
+            <?php endif; ?>
             <form method="post" enctype="multipart/form-data" class="was-validated" novalidate>
 
                 <!-- ── Personal Information ── -->
@@ -440,7 +448,7 @@ footer {
                     <div class="col-12 col-sm-4">
                         <div class="form-group">
                             <label>Last Name <span class="req">*</span></label>
-                            <input type="text" class="form-control text-uppercase-field" name="lname" placeholder="e.g. Dela Cruz" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
+                            <input type="text" class="form-control text-uppercase-field" name="lname" value="<?= htmlspecialchars(strtoupper($google_pending['lname'] ?? '')) ?>" placeholder="e.g. Dela Cruz" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
                             <div class="valid-feedback">Looks good.</div>
                             <div class="invalid-feedback">Last name is required.</div>
                         </div>
@@ -448,7 +456,7 @@ footer {
                     <div class="col-12 col-sm-4">
                         <div class="form-group">
                             <label>First Name <span class="req">*</span></label>
-                            <input type="text" class="form-control text-uppercase-field" name="fname" placeholder="e.g. Juan" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
+                            <input type="text" class="form-control text-uppercase-field" name="fname" value="<?= htmlspecialchars(strtoupper($google_pending['fname'] ?? '')) ?>" placeholder="e.g. Juan" pattern="[A-Za-z ]+" title="Letters and spaces only" required>
                             <div class="valid-feedback">Looks good.</div>
                             <div class="invalid-feedback">First name is required.</div>
                         </div>
@@ -537,15 +545,29 @@ footer {
                 <div class="section-label">Account Details</div>
 
                 <div class="row g-3">
-                    <div class="col-12 col-sm-4">
-                        <div class="form-group">
-                            <label>Contact Number <span class="req">*</span></label>
-                            <input type="tel" class="form-control" name="contact" maxlength="11"
-                                   pattern="[0-9]{11}" placeholder="09XXXXXXXXX" required>
-                            <div class="valid-feedback">Looks good.</div>
-                            <div class="invalid-feedback">Enter a valid 11-digit number.</div>
-                        </div>
-                    </div>
+<div class="col-12 col-sm-4">
+    <div class="form-group">
+        <label>Contact Number <span class="req">*</span></label>
+
+        <div class="input-group">
+            <span class="input-group-text">+63</span>
+
+            <input type="tel"
+                   class="form-control"
+                   id="contact"
+                   name="contact"
+                   maxlength="10"
+                   pattern="9[0-9]{9}"
+                   placeholder="9XXXXXXXXX"
+                   required>
+        </div>
+
+        <div class="valid-feedback">Looks good.</div>
+        <div class="invalid-feedback">
+            Enter a valid Philippine mobile number.
+        </div>
+    </div>
+</div>
                     <div class="col-12 col-sm-4">
                         <div class="form-group">
                             <label>Email / Phone <span class="req">*</span></label>
@@ -553,6 +575,8 @@ footer {
        class="form-control"
        id="login_identity"
        name="login_identity"
+       value="<?= htmlspecialchars($google_pending['email'] ?? '') ?>"
+       <?= !empty($google_pending) ? 'readonly' : '' ?>
        placeholder="email or phone number"
        required>
 <div class="valid-feedback">Looks good.</div>
@@ -575,6 +599,35 @@ footer {
                     </div>
                 </div>
 
+                <!-- ── Account Recovery ── -->
+                <div class="section-label">Account Recovery</div>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <div class="form-group">
+                            <label>Security Question <span class="req">*</span></label>
+                            <select class="form-select" id="security_question" name="security_question" required>
+                                <option value="">-- Select a question --</option>
+                                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                                <option value="What is the name of your first pet?">What is the name of your first pet?</option>
+                                <option value="What is your favorite teacher's name?">What is your favorite teacher's name?</option>
+                                <option value="What city were you born in?">What city were you born in?</option>
+                                <option value="What is your best friend's name?">What is your best friend's name?</option>
+                            </select>
+                            <div class="valid-feedback">Looks good.</div>
+                            <div class="invalid-feedback">Please choose a security question.</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="form-group">
+                            <label>Answer <span class="req">*</span></label>
+                            <input type="text" class="form-control" id="security_answer" name="security_answer"
+                                   placeholder="Your answer" required autocomplete="off">
+                            <div class="valid-feedback">Looks good.</div>
+                            <div class="invalid-feedback">Please provide an answer.</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ── Terms ── -->
                 <div class="terms-row">
                     <div class="form-check">
@@ -591,6 +644,9 @@ footer {
 
                 <!-- ── Actions ── -->
                 <input type="hidden" name="role" value="student">
+                <?php if (!empty($google_pending)): ?>
+                <input type="hidden" name="addedby" value="Google">
+                <?php endif; ?>
 
                 <div class="form-actions">
                     <button class="btn-submit" type="submit" name="add_student" id="submitRegistrationBtn" disabled>
@@ -636,11 +692,32 @@ footer {
     </div>
 </div>
 
+<!-- ── DUPLICATE ACCOUNT MODAL ── -->
+<div class="modal fade" id="duplicateAccountModal" tabindex="-1" aria-labelledby="duplicateAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header navy">
+                <h5 class="modal-title" id="duplicateAccountModalLabel">
+                    <i class="fas fa-triangle-exclamation me-2" style="color:var(--gold);"></i>
+                    Account Already Registered
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="font-size:14px; line-height:1.75;">
+                <p class="mb-0">The email or phone number you entered is already registered to an existing account. Please use a different email or phone number, or log in instead if this account belongs to you.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- FOOTER -->
 <footer class="footer-custom">
   <div class="container">
     <i class="fas fa-school me-2"></i> Eusebia Paz Arroyo Memorial National High School
-    <br><small><?= date('Y') ?> EPAMNHS. All rights reserved.</small>
+    <br><small><?= date('Y') ?> EPAMNHS. </small>
   </div>
 </footer>
 
@@ -725,23 +802,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Auto-uppercase name fields (Last Name, First Name, Middle Name) as the
     // applicant types them, and strip out anything that isn't a letter or
-    // space (no numbers, no symbols).
+    // space (no numbers, no symbols). Also runs once on page load so any
+    // server-prefilled value (e.g. the name Google handed back) is
+    // normalized immediately instead of only after the next keystroke.
+    function cleanUppercaseField(el) {
+        var pos = el.selectionStart;
+        var before = el.value;
+        var cleaned = before.toUpperCase().replace(/[^A-Z ]/g, '');
+        if (cleaned !== before) {
+            pos -= (before.length - cleaned.length);
+        }
+        el.value = cleaned;
+        if (pos !== null && typeof el.setSelectionRange === 'function' && document.activeElement === el) {
+            if (pos < 0) pos = 0;
+            el.setSelectionRange(pos, pos);
+        }
+    }
+
     document.addEventListener('input', function (e) {
         if (e.target && e.target.classList && e.target.classList.contains('text-uppercase-field')) {
-            var el = e.target;
-            var pos = el.selectionStart;
-            var before = el.value;
-            var cleaned = before.toUpperCase().replace(/[^A-Z ]/g, '');
-            if (cleaned !== before) {
-                pos -= (before.length - cleaned.length);
-            }
-            el.value = cleaned;
-            if (pos !== null && typeof el.setSelectionRange === 'function') {
-                if (pos < 0) pos = 0;
-                el.setSelectionRange(pos, pos);
-            }
+            cleanUppercaseField(e.target);
         }
     });
+
+    document.querySelectorAll('.text-uppercase-field').forEach(cleanUppercaseField);
 </script>
 
 <script>
@@ -1014,7 +1098,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (draft) {
             plainFields.forEach(function (name) {
                 var el = $form.elements[name];
-                if (el && draft.fields && draft.fields[name]) el.value = draft.fields[name];
+                if (el && !el.readOnly && draft.fields && draft.fields[name]) el.value = draft.fields[name];
             });
             if ($terms) $terms.checked = !!draft.terms;
             restoreAddress(draft);
@@ -1063,7 +1147,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.stopPropagation();
                 $form.reportValidity();
                 refresh();
+                return;
             }
+            showAdminLoading('Submitting your registration...', 'paper-plane');
         });
 
         refresh();

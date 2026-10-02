@@ -30,6 +30,10 @@ public function create_student() {
 
         $addedby = $_POST['addedby'] ?? 'Student';
 
+        $security_question = trim($_POST['security_question'] ?? '');
+        $security_answer   = trim($_POST['security_answer'] ?? '');
+        $hashed_answer      = $security_answer !== '' ? password_hash(strtolower($security_answer), PASSWORD_DEFAULT) : null;
+
         // Age, civil status, birth place, house no./street, and nationality were
         // removed from the registration form. Age is still derived from the
         // birth date (the `age` column remains NOT NULL); the underage check
@@ -86,10 +90,21 @@ public function create_student() {
                     "UPDATE tbl_student SET email_verified = 1, approval_status = 'pending' WHERE id_student = ?"
                 )->execute([$new_id_student]);
 
+                // Save the account-recovery security question/answer (answer is
+                // hashed, never stored in plain text). Columns are added lazily
+                // so this works even on databases that predate this feature.
+                $this->ensure_security_question_columns($connection);
+                $connection->prepare(
+                    "UPDATE tbl_student SET security_question = ?, security_answer = ? WHERE id_student = ?"
+                )->execute([$security_question ?: null, $hashed_answer, $new_id_student]);
+
                 if (session_status() === PHP_SESSION_NONE) {
                     session_start();
                 }
                 $_SESSION['pending_approval_name'] = trim($fname . ' ' . $lname);
+                // Tell the pending-approval page which identity the student
+                // actually registered with, so it doesn't always say "email".
+                $_SESSION['pending_approval_contact_type'] = $email_to_save ? 'email' : 'phone';
 
                 echo "<script>window.location.href='pending_approval.php';</script>";
             } catch (PDOException $e) {
@@ -97,7 +112,16 @@ public function create_student() {
                 echo "Database Error: " . $e->getMessage();
             }
         } else {
-            echo "<script>alert('Email or Phone Number already registered.');</script>";
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var dupModalEl = document.getElementById('duplicateAccountModal');
+                    if (dupModalEl && window.bootstrap) {
+                        new bootstrap.Modal(dupModalEl).show();
+                    } else {
+                        alert('This account is already registered.');
+                    }
+                });
+            </script>";
         }
     }
 }
@@ -202,10 +226,23 @@ $this->notif('Student Data Updated', 'success', 'reload');
 
         $connection = $this->openConn();
         // Check both email and phone_number columns so duplicates are caught
-        // regardless of whether the user registered with an email or phone number
-        $stmt = $connection->prepare("SELECT * FROM tbl_student WHERE email = ? OR phone_number = ?");
-        $stmt->Execute([$login_identity, $login_identity]);
-        $total = $stmt->rowCount(); 
+        // regardless of whether the user registered with an email or phone number.
+        // Also check tbl_admin and tbl_user (staff/teacher accounts) so an
+        // identity already in use by an admin or staff account is rejected too,
+        // not just ones already used by another student.
+        $stmt = $connection->prepare(
+            "SELECT
+                (SELECT COUNT(*) FROM tbl_student WHERE email = ? OR phone_number = ?) +
+                (SELECT COUNT(*) FROM tbl_admin   WHERE email = ? OR phone_number = ?) +
+                (SELECT COUNT(*) FROM tbl_user    WHERE email = ? OR phone_number = ?)
+             AS total"
+        );
+        $stmt->execute([
+            $login_identity, $login_identity,
+            $login_identity, $login_identity,
+            $login_identity, $login_identity,
+        ]);
+        $total = (int) $stmt->fetchColumn();
 
         return $total;
     }
@@ -330,6 +367,17 @@ $this->notif('Student Data Updated', 'success', 'reload');
 
 
 
+    // Returns the student's currently saved security question (or null),
+    // for prefilling the "update your security question" form.
+    public function get_current_security_question($id_student) {
+        $connection = $this->openConn();
+        $this->ensure_security_question_columns($connection);
+        $stmt = $connection->prepare("SELECT security_question FROM tbl_student WHERE id_student = ?");
+        $stmt->execute([$id_student]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['security_question'] ?? null;
+    }
+
     //-------------------------------------- EXTRA FUNCTIONS ------------------------------------------------
 
     public function student_changepass() {
@@ -344,8 +392,13 @@ $this->notif('Student Data Updated', 'success', 'reload');
         $checkpassword = $_POST['checkpassword'] ?? '';
 
         if (!$id_student) {
-            echo "<script>alert('Error: Student ID is missing.');</script>";
-            return;
+            $_SESSION['swal'] = [
+                'icon'  => 'error',
+                'title' => 'Missing Student ID',
+                'text'  => 'We could not identify your account. Please log in again.'
+            ];
+            header('Location: student_changepass.php');
+            exit();
         }
 
         $connection = $this->openConn();
@@ -357,17 +410,33 @@ $this->notif('Student Data Updated', 'success', 'reload');
 
         // 3. Validation Logic
         if(!$result) {
-            echo "<script>alert('Student not found.');</script>";
+            $_SESSION['swal'] = [
+                'icon'  => 'error',
+                'title' => 'Student Not Found',
+                'text'  => 'We could not find your student record.'
+            ];
         } 
         // Use password_verify to check against the hashed DB password
         elseif (!password_verify($oldpassword_input, $result['password'])) {
-            echo "<script>alert('Old Password is Incorrect');</script>";
-        } 
-        elseif ($newpassword !== $checkpassword) {
-            echo "<script>alert('New Password and Verification Password do not Match');</script>";
+            $_SESSION['swal'] = [
+                'icon'  => 'error',
+                'title' => 'Incorrect Password',
+                'text'  => 'Your current password is incorrect.'
+            ];
         } 
         elseif (empty($newpassword)) {
-            echo "<script>alert('New password cannot be empty');</script>";
+            $_SESSION['swal'] = [
+                'icon'  => 'warning',
+                'title' => 'Password Required',
+                'text'  => 'New password cannot be empty.'
+            ];
+        }
+        elseif ($newpassword !== $checkpassword) {
+            $_SESSION['swal'] = [
+                'icon'  => 'warning',
+                'title' => 'Passwords Do Not Match',
+                'text'  => 'New password and confirmation password do not match.'
+            ];
         } 
         else {
             // 4. Update the password using a NEW hash
@@ -377,17 +446,168 @@ $this->notif('Student Data Updated', 'success', 'reload');
             $success = $stmt->execute([$hashed_password, $id_student]);
             
             if ($success) {
-                echo "<script type='text/javascript'>
-                        alert('Password Updated Successfully');
-                        window.location.href = window.location.href; // Refresh page cleanly
-                      </script>";
-                exit();
+                $_SESSION['swal'] = [
+                    'icon'  => 'success',
+                    'title' => 'Password Updated',
+                    'text'  => 'Your password has been updated successfully.'
+                ];
             } else {
-                echo "<script>alert('Database Error: Could not update password.');</script>";
+                $_SESSION['swal'] = [
+                    'icon'  => 'error',
+                    'title' => 'Update Failed',
+                    'text'  => 'Database error: could not update password.'
+                ];
+            }
+        }
+
+        // Redirect so a page refresh never resubmits the form (PRG pattern),
+        // same flash-then-redirect flow used after enrollment submission.
+        header('Location: student_changepass.php');
+        exit();
+    }
+}
+
+    // Lazily adds the account-recovery security question columns to
+    // tbl_student. Same pattern as ensure_student_verification_columns() —
+    // safe to call repeatedly, works on databases that predate this feature.
+    protected function ensure_security_question_columns($connection) {
+        $cols = [
+            "security_question VARCHAR(255) DEFAULT NULL",
+            "security_answer VARCHAR(255) DEFAULT NULL",
+        ];
+        foreach ($cols as $def) {
+            try {
+                $connection->exec("ALTER TABLE tbl_student ADD COLUMN {$def}");
+            } catch (PDOException $e) {
+                // Column already exists — ignore.
             }
         }
     }
-}
+
+    // Lets an already-logged-in student set or update their security
+    // question from its own standalone page. Posted as `set_security_question`.
+    public function student_set_security_question() {
+        if (!isset($_POST['set_security_question'])) return;
+
+        $id_student = $_POST['id_student'] ?? null;
+        $question   = trim($_POST['security_question'] ?? '');
+        $answer     = trim($_POST['security_answer'] ?? '');
+
+        if (!$id_student || $question === '' || $answer === '') {
+            $_SESSION['swal'] = [
+                'icon'  => 'warning',
+                'title' => 'Missing Information',
+                'text'  => 'Please choose a question and provide an answer.'
+            ];
+            header('Location: student_security_question.php');
+            exit();
+        }
+
+        $connection = $this->openConn();
+        $this->ensure_security_question_columns($connection);
+
+        $hashed_answer = password_hash(strtolower($answer), PASSWORD_DEFAULT);
+        $connection->prepare(
+            "UPDATE tbl_student SET security_question = ?, security_answer = ? WHERE id_student = ?"
+        )->execute([$question, $hashed_answer, $id_student]);
+
+        $_SESSION['swal'] = [
+            'icon'  => 'success',
+            'title' => 'Security Question Saved',
+            'text'  => 'You can now use this to recover your account with your phone number.'
+        ];
+        header('Location: student_security_question.php');
+        exit();
+    }
+
+    // ---- Forgot-password-by-email recovery (security question) -----------
+    // Same idea as forgot_password_lookup_phone() above, but keyed on email
+    // instead of phone number — lets a student reset instantly via their
+    // security question instead of waiting on the emailed reset link.
+    public function forgot_password_lookup_email($email) {
+        $connection = $this->openConn();
+        $this->ensure_security_question_columns($connection);
+
+        $stmt = $connection->prepare(
+            "SELECT id_student, security_question FROM tbl_student WHERE email = ? LIMIT 1"
+        );
+        $stmt->execute([$email]);
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$student || empty($student['security_question'])) {
+            return ['found' => false];
+        }
+
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['pwd_recovery_student_id'] = $student['id_student'];
+
+        return ['found' => true, 'question' => $student['security_question']];
+    }
+
+    // Step 2 for the email path is identical to the phone path — both only
+    // depend on $_SESSION['pwd_recovery_student_id'] set by whichever lookup
+    // ran above — so this just reuses that logic under a matching name.
+    public function forgot_password_reset_via_email($answer, $newpassword, $checkpassword) {
+        return $this->forgot_password_reset_via_phone($answer, $newpassword, $checkpassword);
+    }
+
+    // ---- Forgot-password-by-phone-number recovery -------------------------
+    // Step 1: look up the student's security question by phone number.
+    // Returns the question on success so the view can render step 2, without
+    // ever exposing whether the phone number matched an email- vs phone-
+    // registered account. Stores the matched id_student in session so step 2
+    // can't be tricked into resetting a different account via a tampered
+    // hidden field.
+    public function forgot_password_lookup_phone($phone) {
+        $connection = $this->openConn();
+        $this->ensure_security_question_columns($connection);
+
+        $stmt = $connection->prepare(
+            "SELECT id_student, security_question FROM tbl_student WHERE phone_number = ? LIMIT 1"
+        );
+        $stmt->execute([$phone]);
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$student || empty($student['security_question'])) {
+            return ['found' => false];
+        }
+
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION['pwd_recovery_student_id'] = $student['id_student'];
+
+        return ['found' => true, 'question' => $student['security_question']];
+    }
+
+    // Step 2: verify the answer to the stored question and, if correct,
+    // set the new password immediately (no email link needed).
+    public function forgot_password_reset_via_phone($answer, $newpassword, $checkpassword) {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $id_student = $_SESSION['pwd_recovery_student_id'] ?? null;
+
+        if (!$id_student) {
+            return ['success' => false, 'message' => 'Your session expired. Please start over.'];
+        }
+        if ($newpassword === '' || $newpassword !== $checkpassword) {
+            return ['success' => false, 'message' => 'New password and confirmation do not match.'];
+        }
+
+        $connection = $this->openConn();
+        $stmt = $connection->prepare("SELECT security_answer FROM tbl_student WHERE id_student = ?");
+        $stmt->execute([$id_student]);
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$student || !$student['security_answer'] ||
+            !password_verify(strtolower(trim($answer)), $student['security_answer'])) {
+            return ['success' => false, 'message' => 'That answer is incorrect.'];
+        }
+
+        $hashed_password = password_hash($newpassword, PASSWORD_DEFAULT);
+        $connection->prepare("UPDATE tbl_student SET password = ? WHERE id_student = ?")
+                   ->execute([$hashed_password, $id_student]);
+
+        unset($_SESSION['pwd_recovery_student_id']);
+        return ['success' => true, 'message' => 'Your password has been reset. You can now log in.'];
+    }
 
 
 

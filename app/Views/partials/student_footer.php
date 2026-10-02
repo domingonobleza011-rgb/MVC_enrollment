@@ -28,3 +28,25 @@
         </div>
     </div>
 </footer>
+
+<script>
+(function () {
+    // Auto-uppercase the Learner / Father's / Mother's name fields on every
+    // grade-level enrollment form (Grade 7–12 all share these field names),
+    // as the student types. The database also uppercases on save as a
+    // backstop, but doing it live here means the student sees exactly what
+    // gets submitted.
+    var upperFieldNames = ['lname', 'fname', 'mi', 'ffname', 'flname', 'fmi', 'mfname', 'mlname', 'mmi'];
+
+    upperFieldNames.forEach(function (name) {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) {
+            el.style.textTransform = 'uppercase';
+            el.addEventListener('input', function () {
+                var pos = el.selectionStart;
+                el.value = el.value.toUpperCase();
+                if (pos !== null && el.setSelectionRange) el.setSelectionRange(pos, pos);
+            });
+        });
+    });
+})();
+</script>

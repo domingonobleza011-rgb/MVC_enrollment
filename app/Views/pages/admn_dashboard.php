@@ -1,51 +1,42 @@
-
-
 <style>
 :root {
-    --edb-navy:      #0b2b5c;
-    --edb-navy-2:    #0f3b7a;
-    --edb-navy-3:    #1e5a88;
-    --edb-navy-4:    #2a6f9c;
-    --edb-accent:    #6366f1;
-    --edb-accent-2:  #818cf8;
+    --edb-surface:   #ffffff;
     --edb-ink:       #0f172a;
     --edb-muted:     #64748b;
     --edb-border:    #e7ebf2;
     --edb-canvas:    #f5f7fb;
     --edb-success:   #059669;
+
+    /* Plain, neutral chart colors. Charts and the strand list both read these,
+       so changing them here re-colors every graph on the page. */
+    --edb-shadow:     rgba(0, 0, 0, 0.06);
+    --edb-chart-rgb:  55, 65, 81;              /* gray-700 */
+    --edb-chart-grid: rgba(0, 0, 0, 0.06);
+    --edb-chart-tick: #6b7280;                 /* gray-500 */
 }
 
 .edb-numeral { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 
 /* ---------- Hero ---------- */
 .dash-hero {
-    background: linear-gradient(135deg, var(--edb-navy) 0%, var(--edb-navy-3) 60%, var(--edb-navy-4) 100%);
-    border-radius: 18px;
-    padding: 30px 34px;
-    color: #fff;
-    box-shadow: 0 12px 30px rgba(11,43,92,0.22);
+    background: var(--edb-surface);
+    border: 1px solid var(--edb-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: var(--edb-ink);
+    box-shadow: 0 2px 10px var(--edb-shadow);
     margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
 }
-.dash-hero::before {
-    content: '';
-    position: absolute;
-    top: -60%; right: -8%;
-    width: 320px; height: 320px;
-    background: radial-gradient(circle, rgba(129,140,248,0.25) 0%, rgba(129,140,248,0) 70%);
-    pointer-events: none;
-}
-.hero-label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; opacity: .72; font-weight: 700; }
+.hero-label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--edb-muted); font-weight: 700; }
 .hero-total { font-size: 2.6rem; font-weight: 800; line-height: 1; }
-.hero-sub { font-size: .86rem; opacity: .78; margin-top: 2px; }
+.hero-sub { font-size: .86rem; color: var(--edb-muted); margin-top: 2px; }
 
 .hero-pulse {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(var(--edb-chart-rgb), 0.06);
+    border: 1px solid var(--edb-border);
     border-radius: 20px;
     padding: 6px 14px 6px 10px;
     font-size: .78rem;
@@ -54,14 +45,14 @@
 }
 .hero-pulse .pulse-dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: var(--edb-accent-2);
-    box-shadow: 0 0 0 0 rgba(129,140,248,0.6);
+    background: rgb(var(--edb-chart-rgb));
+    box-shadow: 0 0 0 0 rgba(var(--edb-chart-rgb), 0.5);
     animation: pulse-ring 2.2s ease-out infinite;
 }
 @keyframes pulse-ring {
-    0%   { box-shadow: 0 0 0 0 rgba(129,140,248,0.55); }
-    70%  { box-shadow: 0 0 0 8px rgba(129,140,248,0); }
-    100% { box-shadow: 0 0 0 0 rgba(129,140,248,0); }
+    0%   { box-shadow: 0 0 0 0 rgba(var(--edb-chart-rgb), 0.45); }
+    70%  { box-shadow: 0 0 0 8px rgba(var(--edb-chart-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--edb-chart-rgb), 0); }
 }
 @media (prefers-reduced-motion: reduce) {
     .hero-pulse .pulse-dot { animation: none; }
@@ -70,36 +61,39 @@
 .hero-split { margin-top: 22px; }
 .hero-split-track {
     display: flex; width: 100%; height: 7px; border-radius: 8px;
-    overflow: hidden; background: rgba(255,255,255,0.14);
+    overflow: hidden; background: rgba(var(--edb-chart-rgb), 0.12);
 }
-.hero-split-track span:first-child { background: #fff; }
-.hero-split-track span:last-child { background: var(--edb-accent-2); }
+.hero-split-track span:first-child { background: rgb(var(--edb-chart-rgb)); }
+.hero-split-track span:last-child { background: rgba(var(--edb-chart-rgb), 0.4); }
 .hero-split-legend {
     display: flex; justify-content: space-between; margin-top: 8px;
-    font-size: .76rem; opacity: .85;
+    font-size: .76rem; color: var(--edb-muted);
 }
 .hero-split-legend .legend-dot {
     width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px;
 }
+.hero-split-legend .legend-dot.jhs { background: rgb(var(--edb-chart-rgb)); }
+.hero-split-legend .legend-dot.shs { background: rgba(var(--edb-chart-rgb), 0.4); }
 
 /* ---------- KPI cards ---------- */
 .kpi-card {
     border: none;
     border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(11,43,92,0.08);
+    box-shadow: 0 2px 10px var(--edb-shadow);
     transition: transform .18s ease, box-shadow .18s ease;
     overflow: hidden;
     position: relative;
 }
-.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(11,43,92,0.16); cursor: default; }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px var(--edb-shadow); cursor: default; }
 .kpi-card .kpi-icon {
     width: 44px; height: 44px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; color: #fff; flex-shrink: 0;
+    font-size: 1.1rem; flex-shrink: 0;
+    background: rgba(var(--edb-chart-rgb), 0.10); color: rgb(var(--edb-chart-rgb));
 }
 .kpi-card .kpi-value { font-size: 1.55rem; font-weight: 800; color: var(--edb-ink); }
 .kpi-card .kpi-label { font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--edb-muted); font-weight: 700; }
-.kpi-card .kpi-share { font-size: .72rem; color: var(--edb-accent); font-weight: 700; margin-top: 1px; }
+.kpi-card .kpi-share { font-size: .72rem; color: var(--edb-muted); font-weight: 700; margin-top: 1px; }
 
 /* ---------- Section headers ---------- */
 .section-title {
@@ -115,9 +109,9 @@
     font-size: .68rem;
     letter-spacing: .1em;
     text-transform: uppercase;
-    color: var(--edb-accent);
+    color: var(--edb-muted);
     font-weight: 800;
-    border-left: 3px solid var(--edb-accent);
+    border-left: 3px solid rgb(var(--edb-chart-rgb));
     padding-left: 8px;
 }
 
@@ -125,7 +119,7 @@
 .panel-card {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 4px 18px rgba(11,43,92,0.07);
+    box-shadow: 0 2px 10px var(--edb-shadow);
 }
 .panel-card .card-header {
     background: #fff;
@@ -150,7 +144,7 @@
 }
 .trend-empty i { font-size: 1.6rem; color: var(--edb-border); }
 .trend-empty code {
-    background: var(--edb-canvas); padding: 1px 6px; border-radius: 5px; color: var(--edb-navy-3);
+    background: var(--edb-canvas); padding: 1px 6px; border-radius: 5px; color: var(--edb-ink);
 }
 
 /* ---------- Strand list ---------- */
@@ -161,23 +155,44 @@
     padding: 14px 16px;
     transition: transform .15s ease, box-shadow .15s ease;
 }
-.strand-row:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(11,43,92,0.08); }
+.strand-row:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
 .strand-row .strand-top {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
 }
 .strand-row .strand-name {
     font-size: .78rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+    color: var(--edb-ink);
 }
 .strand-row .strand-value { font-size: 1.15rem; font-weight: 800; color: var(--edb-ink); }
 .strand-row .strand-bar-track {
-    height: 6px; border-radius: 6px; background: var(--edb-canvas); overflow: hidden;
+    height: 6px; border-radius: 6px; background: rgba(var(--edb-chart-rgb), 0.12); overflow: hidden;
 }
-.strand-row .strand-bar-fill { height: 100%; border-radius: 6px; }
+.strand-row .strand-bar-fill { height: 100%; border-radius: 6px; background: rgb(var(--edb-chart-rgb)); }
 
 @media (max-width: 575.98px) {
     .dash-hero { padding: 22px 20px; }
     .hero-total { font-size: 2.1rem; }
     .dash-hero .d-flex[style*="gap:40px"] { gap: 24px !important; margin-top: 16px; }
+}
+
+/* ===== Dark mode ===== */
+/* All KPI/panel/strand rules above read color from these custom properties,
+   so redefining them here is enough to re-theme the whole page — no need
+   to duplicate every selector. */
+html[data-theme="dark"] {
+    --edb-ink:     #e6e9f0;
+    --edb-muted:   #9aa3b5;
+    --edb-border:  rgba(255,255,255,0.08);
+    --edb-canvas:  #1e2432;
+
+    --edb-surface:    #1a1f2b;
+    --edb-shadow:     rgba(0, 0, 0, 0.35);
+    --edb-chart-rgb:  209, 213, 219;           /* gray-300 */
+    --edb-chart-grid: rgba(255, 255, 255, 0.08);
+    --edb-chart-tick: #9ca3af;                 /* gray-400 */
+}
+html[data-theme="dark"] .strand-row {
+    background: #1a1f2b;
 }
 </style>
 
@@ -215,38 +230,13 @@
                 <span style="width:<?= $shs_pct ?>%;"></span>
             </div>
             <div class="hero-split-legend">
-                <span><span class="legend-dot" style="background:#fff;"></span>Junior High — <?= $jhs_pct ?>%</span>
-                <span><span class="legend-dot" style="background:var(--edb-accent-2);"></span>Senior High — <?= $shs_pct ?>%</span>
+                <span><span class="legend-dot jhs"></span>Junior High — <?= $jhs_pct ?>%</span>
+                <span><span class="legend-dot shs"></span>Senior High — <?= $shs_pct ?>%</span>
             </div>
         </div>
     </div>
 
-    <!-- KPI CARDS -->
-    <div class="row mb-4">
-        <?php
-        $kpis = [
-            ['label' => 'Grade 7-10',  'value' => $total_jhs, 'icon' => 'fa-users',         'grad' => 'linear-gradient(135deg,#0b2b5c,#1e5a88)'],
-            ['label' => 'Grade 11-12', 'value' => $total_shs, 'icon' => 'fa-user-graduate', 'grad' => 'linear-gradient(135deg,#1e5a88,#2a6f9c)'],
-            ['label' => 'STEM + ABM',  'value' => $stem_count + $abm_count, 'icon' => 'fa-flask',   'grad' => 'linear-gradient(135deg,#2a6f9c,#4a8db5)'],
-            ['label' => 'GAS + TVL',   'value' => $gas_count + $ict_count + $he_count, 'icon' => 'fa-layer-group', 'grad' => 'linear-gradient(135deg,#4a8db5,#7fb0d0)'],
-        ];
-        foreach ($kpis as $k):
-            $share = $grand_total > 0 ? round(($k['value'] / $grand_total) * 100) : 0;
-        ?>
-        <div class="col-6 col-lg-3 mb-3">
-            <div class="card kpi-card h-100">
-                <div class="card-body d-flex align-items-center" style="gap:14px;">
-                    <div class="kpi-icon" style="background:<?= $k['grad'] ?>;"><i class="fas <?= $k['icon'] ?>"></i></div>
-                    <div>
-                        <div class="kpi-value edb-numeral"><?= number_format($k['value']) ?></div>
-                        <div class="kpi-label"><?= $k['label'] ?></div>
-                        <div class="kpi-share"><?= $share ?>% of total</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
+   
 
     <!-- ENROLLMENT BY GRADE + TREND -->
     <div class="section-title"><span class="eyebrow">Monitoring</span>Enrollment</div>
@@ -257,7 +247,9 @@
                     Enrollment by Grade Level
                     <span class="card-header-hint">Grade 7–12</span>
                 </div>
-                <div class="card-body"><canvas id="gradeChart" style="height:280px;"></canvas></div>
+                <div class="card-body">
+                    <div class="chart-area chart-area-md"><canvas id="gradeChart"></canvas></div>
+                </div>
             </div>
         </div>
         <div class="col-lg-6">
@@ -268,7 +260,7 @@
                 </div>
                 <div class="card-body">
                     <?php if ($trend_available): ?>
-                        <canvas id="trendChart" style="height:280px;"></canvas>
+                        <div class="chart-area chart-area-md"><canvas id="trendChart"></canvas></div>
                     <?php else: ?>
                         <div class="trend-empty">
                             <i class="fas fa-chart-line"></i>
@@ -304,22 +296,22 @@
                     <?php
                     $shs_strand_total = max($stem_count + $abm_count + $gas_count + $ict_count + $he_count, 1);
                     $course_cards = [
-                        ['label' => 'STEM',    'count' => $stem_count, 'hex' => '#0b2b5c'],
-                        ['label' => 'ABM',     'count' => $abm_count,  'hex' => '#0f3b7a'],
-                        ['label' => 'GAS',     'count' => $gas_count,  'hex' => '#1e5a88'],
-                        ['label' => 'TVL-ICT', 'count' => $ict_count,  'hex' => '#2a6f9c'],
-                        ['label' => 'TVL-HE',  'count' => $he_count,   'hex' => '#4a8db5'],
+                        ['label' => 'STEM',    'count' => $stem_count],
+                        ['label' => 'ABM',     'count' => $abm_count],
+                        ['label' => 'GAS',     'count' => $gas_count],
+                        ['label' => 'TVL-ICT', 'count' => $ict_count],
+                        ['label' => 'TVL-HE',  'count' => $he_count],
                     ];
                     foreach ($course_cards as $i => $card):
                         $pct = round(($card['count'] / $shs_strand_total) * 100);
                     ?>
                     <div class="strand-row <?= $i < count($course_cards) - 1 ? 'mb-2' : '' ?>">
                         <div class="strand-top">
-                            <span class="strand-name" style="color:<?= $card['hex'] ?>;"><?= $card['label'] ?></span>
+                            <span class="strand-name"><?= $card['label'] ?></span>
                             <span class="strand-value edb-numeral"><?= number_format($card['count']) ?></span>
                         </div>
                         <div class="strand-bar-track">
-                            <div class="strand-bar-fill" style="width:<?= $pct ?>%; background:<?= $card['hex'] ?>;"></div>
+                            <div class="strand-bar-fill" style="width:<?= $pct ?>%;"></div>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -334,28 +326,47 @@
 <script>
 Chart.defaults.font.family = "'Nunito', -apple-system, sans-serif";
 
+// --- Theme-aware chart colors. Canvases are drawn by JS so they can't use CSS
+// directly; read the same --edb-chart-* custom properties the stylesheet uses.
+// Those flip under html[data-theme="dark"], so charts and CSS always agree. ---
+function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function chartColor(alpha) {
+    var rgb = cssVar('--edb-chart-rgb');
+    return alpha == null ? 'rgb(' + rgb + ')' : 'rgba(' + rgb + ',' + alpha + ')';
+}
+function chartGridColor() { return cssVar('--edb-chart-grid'); }
+function chartTickColor() { return cssVar('--edb-chart-tick'); }
+Chart.defaults.color = chartTickColor();
+
+const dashboardCharts = [];
+
 // --- COMBINED GRADE 7-12 CHART (replaces the separate JHS/SHS charts) ---
 const ctxGrade = document.getElementById('gradeChart').getContext('2d');
-new Chart(ctxGrade, {
+const gradeChart = new Chart(ctxGrade, {
     type: 'bar',
     data: {
         labels: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
         datasets: [{
             label: 'Students',
             data: [<?= $g7 ?>, <?= $g8 ?>, <?= $g9 ?>, <?= $g10 ?>, <?= $g11 ?>, <?= $g12 ?>],
-            backgroundColor: ['#0b2b5c', '#0f3b7a', '#1e5a88', '#2a6f9c', '#4a8db5', '#7fb0d0'],
+            backgroundColor: chartColor(),
             borderRadius: 8,
             borderSkipped: false,
         }]
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(11,43,92,0.06)' } },
-            x: { grid: { display: false } }
+            y: { beginAtZero: true, ticks: { precision: 0, color: chartTickColor() }, grid: { color: chartGridColor() } },
+            x: { ticks: { color: chartTickColor() }, grid: { display: false } }
         }
     }
 });
+dashboardCharts.push(gradeChart);
 
 <?php if ($trend_available): ?>
 // --- ENROLLMENT OVER TIME ---
@@ -363,19 +374,23 @@ const trendLabels = <?= json_encode(array_map(fn($d) => date('M j', strtotime($d
 const trendData   = <?= json_encode(array_values($trend)) ?>;
 
 const ctxTrend = document.getElementById('trendChart').getContext('2d');
-const trendGradient = ctxTrend.createLinearGradient(0, 0, 0, 280);
-trendGradient.addColorStop(0, 'rgba(11,43,92,0.28)');
-trendGradient.addColorStop(1, 'rgba(11,43,92,0.02)');
 
-new Chart(ctxTrend, {
+function trendFillGradient() {
+    var g = ctxTrend.createLinearGradient(0, 0, 0, 300);
+    g.addColorStop(0, chartColor(0.25));
+    g.addColorStop(1, chartColor(0.02));
+    return g;
+}
+
+const trendChart = new Chart(ctxTrend, {
     type: 'line',
     data: {
         labels: trendLabels,
         datasets: [{
             label: 'New Enrollees',
             data: trendData,
-            borderColor: '#0b2b5c',
-            backgroundColor: trendGradient,
+            borderColor: chartColor(),
+            backgroundColor: trendFillGradient(),
             fill: true,
             tension: 0.35,
             pointRadius: 0,
@@ -384,25 +399,28 @@ new Chart(ctxTrend, {
         }]
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(11,43,92,0.06)' } },
-            x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }
+            y: { beginAtZero: true, ticks: { precision: 0, color: chartTickColor() }, grid: { color: chartGridColor() } },
+            x: { ticks: { maxTicksLimit: 8, color: chartTickColor() }, grid: { display: false } }
         }
     }
 });
+dashboardCharts.push(trendChart);
 <?php endif; ?>
 
 // --- STRAND DISTRIBUTION ---
 const ctxStrand = document.getElementById('strandChart').getContext('2d');
-new Chart(ctxStrand, {
+const strandChart = new Chart(ctxStrand, {
     type: 'bar',
     data: {
         labels: ['STEM', 'ABM', 'GAS', 'TVL-ICT', 'TVL-HE'],
         datasets: [{
             label: 'Total Students',
             data: [<?= (int)$stem_count ?>, <?= (int)$abm_count ?>, <?= (int)$gas_count ?>, <?= (int)$ict_count ?>, <?= (int)$he_count ?>],
-            backgroundColor: ['#0b2b5c', '#0f3b7a', '#1e5a88', '#2a6f9c', '#4a8db5'],
+            backgroundColor: chartColor(),
             borderRadius: 8,
             borderSkipped: false,
         }]
@@ -411,13 +429,46 @@ new Chart(ctxStrand, {
         indexAxis: 'y',
         plugins: { legend: { display: false } },
         scales: {
-            x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: 'rgba(11,43,92,0.06)' } },
-            y: { grid: { display: false } }
+            x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0, color: chartTickColor() }, grid: { color: chartGridColor() } },
+            y: { ticks: { color: chartTickColor() }, grid: { display: false } }
         },
         responsive: true,
         maintainAspectRatio: false
     }
 });
+dashboardCharts.push(strandChart);
+
+// --- Keep charts in sync with live theme switches (no page reload happens
+// when the user picks Light/Dark from the notification-bell area's theme
+// menu, so re-color the canvases whenever data-theme actually changes). ---
+new MutationObserver(function (mutations) {
+    var changed = mutations.some(function (m) { return m.attributeName === 'data-theme'; });
+    if (!changed) return;
+
+    Chart.defaults.color = chartTickColor();
+
+    dashboardCharts.forEach(function (chart) {
+        var scales = chart.options.scales || {};
+        if (scales.x) {
+            if (scales.x.ticks) scales.x.ticks.color = chartTickColor();
+            if (scales.x.grid && scales.x.grid.display !== false) scales.x.grid.color = chartGridColor();
+        }
+        if (scales.y) {
+            if (scales.y.ticks) scales.y.ticks.color = chartTickColor();
+            if (scales.y.grid && scales.y.grid.display !== false) scales.y.grid.color = chartGridColor();
+        }
+    });
+
+    gradeChart.data.datasets[0].backgroundColor  = chartColor();
+    strandChart.data.datasets[0].backgroundColor = chartColor();
+
+    if (typeof trendChart !== 'undefined') {
+        trendChart.data.datasets[0].borderColor = chartColor();
+        trendChart.data.datasets[0].backgroundColor = trendFillGradient();
+    }
+
+    dashboardCharts.forEach(function (chart) { chart.update(); });
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 </script>
 
 <?php include(VIEWS_PATH . '/partials/dashboard_sidebar_end.php'); ?>

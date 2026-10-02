@@ -1,15 +1,15 @@
 <?php require MODELS_PATH . '/conn.php'; require_once MODELS_PATH . '/ai_review_ui.php'; ?>
 
 <!-- ===== DOCUMENT VIEWER MODAL (Facebook-story style) ===== -->
-<div class="modal fade" id="docViewerModal" tabindex="-1" role="dialog" aria-labelledby="docViewerTitle" aria-hidden="true">
+<div class="modal fade plain-modal" id="docViewerModal" tabindex="-1" role="dialog" aria-labelledby="docViewerTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#0b2b5c,#1f5a9e);color:white;">
+            <div class="modal-header">
                 <h5 class="modal-title" id="docViewerTitle">
                     <i class="fas fa-file"></i>&nbsp;<span id="docViewerTitleText">Document Preview</span>
                     <span id="docViewerCounter" class="ml-2 small font-weight-normal" style="opacity:.8;"></span>
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:white;opacity:1;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -31,33 +31,53 @@
 </div>
 <button id="docViewerRelay" data-toggle="modal" data-target="#docViewerModal" style="display:none;"></button>
 
-<!-- ===== REJECT REASON MODAL ===== -->
-<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius:14px;overflow:hidden;">
-            <div class="modal-header" style="background:#c0392b;color:white;">
-                <h5 class="modal-title"><i class="fas fa-times-circle mr-2"></i>Reject Enrollment</h5>
-                <button type="button" class="close" data-dismiss="modal" style="color:white;opacity:1;"><span>&times;</span></button>
-            </div>
-            <form id="rejectForm" action="" method="POST">
-                <input type="hidden" name="id_ten" id="rejectIdTen" value="">
-                <div class="modal-body">
-                    <p class="mb-1">Student: <strong id="rejectStudentName"></strong></p>
-                    <p class="text-muted small mb-3">An email notification will be sent to the student.</p>
-                    <div class="form-group">
-                        <label for="reject_reason"><strong>Reason for Rejection</strong> <span class="text-muted">(optional)</span></label>
-                        <textarea class="form-control" id="reject_reason" name="reject_reason" rows="3"
-                            placeholder="e.g. Incomplete documents, does not meet age requirement..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="reject_ten" class="btn btn-danger">
-                        <i class="fas fa-times-circle mr-1"></i> Confirm Reject
-                    </button>
-                </div>
-            </form>
+<!-- ===== APPROVE CONFIRM MODAL ===== -->
+<div class="approve-modal-overlay" id="approveModalOverlay_ten">
+    <div class="approve-modal">
+        <div class="approve-modal-icon">
+            <i class="fas fa-check"></i>
         </div>
+        <h5>Approve Enrollment?</h5>
+        <p>You are about to approve <strong id="approveStudentName_ten"></strong>'s enrollment.</p>
+        <div class="approve-modal-info">
+            <i class="fas fa-envelope"></i>
+            An email notification will be sent to the student.
+        </div>
+        <div class="approve-modal-actions">
+            <button type="button" class="btn-cancel-approve" onclick="closeApproveModal_ten()">Cancel</button>
+            <button type="button" class="btn-confirm-approve" id="confirmApproveBtn_ten">
+                <i class="fas fa-check"></i> Yes, Approve
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== REJECT REASON MODAL ===== -->
+<div class="reject-modal-overlay" id="rejectModalOverlay_ten">
+    <div class="reject-modal">
+        <div class="reject-modal-icon">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h5>Reject Enrollment?</h5>
+        <p>Student: <strong id="rejectStudentName"></strong></p>
+        <div class="reject-modal-warning">
+            <i class="fas fa-envelope"></i>
+            An email notification will be sent to the student.
+        </div>
+        <form id="rejectForm" action="" method="POST">
+            <input type="hidden" name="id_ten" id="rejectIdTen" value="">
+            <div class="form-group">
+                <label for="reject_reason">Reason for Rejection <span class="text-muted" style="font-weight:400;">(optional)</span></label>
+                <textarea class="form-control" id="reject_reason" name="reject_reason" rows="3"
+                    placeholder="e.g. Incomplete documents, does not meet age requirement..."></textarea>
+            </div>
+            <div class="reject-modal-actions">
+                <button type="button" class="btn-cancel-reject-modal" onclick="closeRejectModal_ten()">Cancel</button>
+                <button type="submit" name="reject_ten" class="btn-confirm-reject-modal">
+                    <i class="fas fa-times-circle"></i> Confirm Reject
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -73,46 +93,249 @@
 .doc-nav-btn:hover { background:rgba(0,0,0,.6); }
 .doc-nav-prev { left:10px; }
 .doc-nav-next { right:10px; }
-#docViewerSegments .doc-segment { flex:1; height:3px; border-radius:2px; background:#dfe3ea; overflow:hidden; }
-#docViewerSegments .doc-segment.active { background:#0b2b5c; }
+#docViewerSegments .doc-segment { flex:1; height:3px; border-radius:2px; background:#e5e7eb; overflow:hidden; }
+#docViewerSegments .doc-segment.active { background:#374151; }
 #docViewerBody iframe { width:100%;height:68vh;border:none;border-radius:8px; }
 .doc-preview-btn { display:inline-block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;cursor:pointer;transition:transform .15s,box-shadow .15s; }
 .doc-preview-btn:hover { transform:scale(1.04);box-shadow:0 3px 10px rgba(42,111,156,.3); }
 .doc-unsupported { padding:50px 20px;color:#6c757d; }
 .doc-unsupported .big-icon { font-size:3rem;display:block;margin-bottom:12px;color:#adb5bd; }
-.status-badge { font-size:12px;padding:4px 10px;border-radius:20px;font-weight:600;display:inline-block; }
-.status-pending  { background:#fff3cd;color:#856404;border:1px solid #ffc107; }
-.status-approved { background:#d4edda;color:#155724;border:1px solid #28a745; }
-.status-rejected { background:#f8d7da;color:#721c24;border:1px solid #dc3545; }
-.status-waitlisted { background:#e2e3ff;color:#3730a3;border:1px solid #6366f1; }
+.status-badge { font-size:.72rem;padding:.15rem .55rem;border-radius:10px;font-weight:600;display:inline-block;white-space:nowrap; }
+.status-pending  { background:#fff3cd;color:#856404; }
+.status-approved { background:#d4edda;color:#155724; }
+.status-rejected { background:#f8d7da;color:#721c24; }
+.status-waitlisted { background:#e2e3ff;color:#3730a3; }
 
-/* ===== MODERN TABLE ===== */
-.modern-card { border:none; border-radius:14px; overflow:hidden; }
-.modern-card .card-header { border:none; padding:14px 20px; }
-#studentsTable { font-size:.84rem; }
+/* ===== Enrollees table: simple, compact, scrollable ===== */
+.modern-card { border:1px solid #e3e6ec; border-radius:8px; overflow:hidden; }
+.modern-card .card-header { border:0; padding:.5rem .85rem; }
+
+/* Scroll box: scrolls sideways and down; the header row stays pinned while scrolling. */
+.enr-scroll { overflow:auto; max-height:70vh; -webkit-overflow-scrolling:touch; }
+
+#studentsTable { width:100%; margin:0 !important; font-size:.82rem; white-space:nowrap; }
 #studentsTable thead th {
-    background:#f8f9fc; color:#5a6169; border:none;
-    text-transform:uppercase; letter-spacing:.04em; font-size:.7rem;
-    font-weight:700; padding:12px 10px; vertical-align:middle;
+    position:sticky; top:0; z-index:2;
+    padding:.5rem 1.5rem .5rem .75rem; vertical-align:middle;
+    background:#f8f9fc; color:#5a5c69;
+    font-size:.78rem; font-weight:700;
+    border:0; border-bottom:1px solid #e3e6ec;
 }
-#studentsTable tbody td { padding:10px; vertical-align:middle; border-top:1px solid #f0f2f6; }
-#studentsTable tbody tr { transition:background .12s ease; }
-#studentsTable tbody tr:hover { background:#f8faff; }
-.student-avatar {
-    width:32px; height:32px; min-width:32px; border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;
-    display:inline-flex; align-items:center; justify-content:center;
-    font-weight:700; font-size:.72rem; margin-right:8px;
-}
-.student-name-cell { display:flex; align-items:center; }
-.student-name-text { font-weight:600; color:#1a202c; }
-.actions-dropdown-toggle {
-    border-radius:20px !important; border:1px solid #e2e8f0 !important;
-    background:#fff !important; color:#4a5568 !important;
-    box-shadow:none !important;
-}
-.actions-dropdown-toggle:hover { background:#f8faff !important; border-color:#6366f1 !important; color:#6366f1 !important; }
+#studentsTable tbody td { padding:.4rem .75rem; vertical-align:middle; border:0; border-bottom:1px solid #eef0f4; }
+html:not([data-theme="dark"]) #studentsTable tbody td { color:#2d3142; }
 
+/* One line per row: no stacked badge + link inside a cell. */
+#studentsTable tbody > tr > td > br { display:none; }
+#studentsTable td > .btn-sm,
+#studentsTable .row-actions > .btn-sm { padding:.15rem .5rem; font-size:.75rem; }
+#studentsTable td > .btn.mt-1 { margin-top:0 !important; margin-left:.35rem; }
+#studentsTable td > .ai-badge { font-size:.72rem; padding:.15rem .55rem; border-radius:10px; border:0; white-space:nowrap; }
+/* Modals are rendered inside cells; they must wrap text normally. */
+#studentsTable .modal { white-space:normal; }
+
+/* ===== DataTables pagination (bottom of #studentsTable), theme-aware ===== */
+.dataTables_wrapper .dataTables_paginate { padding-top:.6rem; text-align:right; }
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding:.25rem .65rem; margin-left:3px; border-radius:6px; border:1px solid #e3e6ec;
+    background:#fff; color:#2d3142 !important; font-size:.78rem; cursor:pointer;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
+    background:#f0f2f7; border-color:#d7dbe2; color:#2d3142 !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background:#0b2b5c; border-color:#0b2b5c; color:#fff !important; font-weight:700;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity:.4; cursor:not-allowed;
+}
+html[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background:#1e2432; border-color:#2c3446; color:#fff !important;
+}
+html[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
+    background:#262e3f; border-color:#3a4459; color:#fff !important;
+}
+html[data-theme="dark"] .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background:#3b6fd6; border-color:#3b6fd6; color:#fff !important;
+}
+
+/* ===== Row "Actions" dropdown: a plain Bootstrap dropdown =====
+   The script further down floats the open menu (position:fixed) so the scroll
+   box can't clip it, and adds .is-dropup when it has to open upward. */
+.row-actions { display:inline-block; }
+.row-actions-menu { min-width:10rem; padding:.25rem 0; font-size:.82rem; text-align:left; }
+.row-actions-menu form { margin:0; }
+.row-actions-menu .dropdown-item { padding:.35rem .9rem; }
+.row-actions-menu .dropdown-item i { width:1.25em; margin-right:.4rem; text-align:center; }
+.row-actions-menu .dropdown-divider { margin:.25rem 0; }
+.row-actions-menu .dropdown-item.item-reject { color:#dc3545; }
+html[data-theme="dark"] .row-actions-menu .dropdown-item.item-reject { color:#f28b82 !important; }
+.row-actions-menu.is-floating { position:fixed; margin:0; transform:none; z-index:1030; overflow-y:auto; }
+.row-actions.is-dropup > .dropdown-toggle::after { border-top:0; border-bottom:.3em solid; }
+
+/* ===== Edit modal: plain, compact ===== */
+.edit-student-body { max-height:70vh; overflow-y:auto; padding:.9rem 1.1rem; }
+.edit-student-body .form-group { margin-bottom:.6rem; }
+.edit-student-body .form-control { text-align:left; }
+.edit-student-body label { font-size:.78rem; font-weight:600; margin-bottom:.15rem; }
+.edit-section-title {
+    font-size:.75rem; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--edb-ink); font-weight:700; margin:16px 0 8px;
+    padding-bottom:4px; border-bottom:1px solid var(--edb-border);
+}
+.edit-section-title:first-child { margin-top:0; }
+html[data-theme="dark"] .modal-header .close { color:#ffffff; text-shadow:none; opacity:.85; }
+
+
+/* ===== Approve / Reject modals (match Archive's restore/delete modal style) ===== */
+.approve-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10, 20, 40, 0.6); backdrop-filter: blur(4px);
+    z-index: 9999; align-items: center; justify-content: center;
+}
+.approve-modal-overlay.show { display: flex; }
+.approve-modal {
+    background: #fff; border-radius: 20px; padding: 2rem;
+    max-width: 400px; width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: gtPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+}
+@keyframes gtPopIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+.approve-modal-icon {
+    width: 70px; height: 70px;
+    background: linear-gradient(135deg, #eafaf1, #d5f5e3);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.2rem; border: 3px solid #a9dfbf;
+}
+.approve-modal-icon i { font-size: 1.8rem; color: #27ae60; }
+.approve-modal h5 { font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.15rem; color: #1a1a2e; margin-bottom: 0.5rem; }
+.approve-modal p { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 1.2rem; line-height: 1.6; }
+.approve-modal-info {
+    background: #eafaf1; border: 1px solid #a9dfbf; border-radius: 10px;
+    padding: 0.6rem 1rem; font-size: 0.78rem; color: #27ae60; font-weight: 600;
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; text-align: left;
+}
+.approve-modal-actions { display: flex; gap: 10px; }
+.btn-cancel-approve {
+    flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid #e0e0e0;
+    background: #f8f9fa; color: #555; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s;
+}
+.btn-cancel-approve:hover { background: #e9ecef; border-color: #ccc; }
+.btn-confirm-approve {
+    flex: 1; padding: 10px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #1e8449, #27ae60); color: white;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(39,174,96,0.4); transition: all 0.2s;
+}
+.btn-confirm-approve:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(39,174,96,0.5); }
+
+.reject-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10, 20, 40, 0.6); backdrop-filter: blur(4px);
+    z-index: 9999; align-items: center; justify-content: center;
+}
+.reject-modal-overlay.show { display: flex; }
+.reject-modal {
+    background: #fff; border-radius: 20px; padding: 2rem;
+    max-width: 420px; width: 92%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: gtPopIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+}
+.reject-modal-icon {
+    width: 70px; height: 70px;
+    background: linear-gradient(135deg, #fff0f0, #ffe0e0);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.2rem; border: 3px solid #f5c6c6;
+}
+.reject-modal-icon i { font-size: 1.8rem; color: #e74c3c; }
+.reject-modal h5 { font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 1.15rem; color: #1a1a2e; margin-bottom: 0.5rem; }
+.reject-modal p { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 1rem; line-height: 1.6; }
+.reject-modal-warning {
+    background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;
+    padding: 0.6rem 1rem; font-size: 0.78rem; color: #f39c12; font-weight: 600;
+    margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px; text-align: left;
+}
+.reject-modal .form-group { text-align: left; margin-bottom: 1.5rem; }
+.reject-modal .form-group label { font-size: 0.82rem; font-weight: 700; color: #1a1a2e; }
+.reject-modal textarea.form-control { border-radius: 10px; border: 1.5px solid #e0e0e0; font-size: 0.85rem; resize: vertical; }
+.reject-modal textarea.form-control:focus { border-color: #e74c3c; box-shadow: 0 0 0 3px rgba(231,76,60,0.12); outline: none; }
+.reject-modal-actions { display: flex; gap: 10px; }
+.btn-cancel-reject-modal {
+    flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid #e0e0e0;
+    background: #f8f9fa; color: #555; font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s;
+}
+.btn-cancel-reject-modal:hover { background: #e9ecef; border-color: #ccc; }
+.btn-confirm-reject-modal {
+    flex: 1; padding: 10px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #c0392b, #e74c3c); color: white;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(231,76,60,0.4); transition: all 0.2s;
+}
+.btn-confirm-reject-modal:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(231,76,60,0.5); }
+
+/* ===== Dark mode support for approve/reject modals ===== */
+html[data-theme="dark"] .approve-modal,
+html[data-theme="dark"] .reject-modal {
+    background: #1a1f2b !important;
+}
+html[data-theme="dark"] .approve-modal h5,
+html[data-theme="dark"] .reject-modal h5 {
+    color: #eef0f4 !important;
+}
+html[data-theme="dark"] .approve-modal p,
+html[data-theme="dark"] .reject-modal p {
+    color: #9aa2b1 !important;
+}
+html[data-theme="dark"] .approve-modal p strong,
+html[data-theme="dark"] .reject-modal p strong {
+    color: #eef0f4 !important;
+}
+html[data-theme="dark"] .reject-modal .form-group label {
+    color: #d7dbe2 !important;
+}
+html[data-theme="dark"] .reject-modal textarea.form-control {
+    background-color: #232a38 !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: #d7dbe2 !important;
+}
+html[data-theme="dark"] .reject-modal textarea.form-control::placeholder {
+    color: rgba(215,219,226,0.4) !important;
+}
+html[data-theme="dark"] .approve-modal-info {
+    background: rgba(39,174,96,0.12) !important;
+    border-color: rgba(39,174,96,0.35) !important;
+    color: #6fcf97 !important;
+}
+html[data-theme="dark"] .reject-modal-warning {
+    background: rgba(243,156,18,0.12) !important;
+    border-color: rgba(243,156,18,0.35) !important;
+    color: #f5b041 !important;
+}
+html[data-theme="dark"] .approve-modal-icon {
+    background: linear-gradient(135deg, rgba(39,174,96,0.18), rgba(39,174,96,0.28)) !important;
+    border-color: rgba(39,174,96,0.45) !important;
+}
+html[data-theme="dark"] .reject-modal-icon {
+    background: linear-gradient(135deg, rgba(231,76,60,0.18), rgba(231,76,60,0.28)) !important;
+    border-color: rgba(231,76,60,0.45) !important;
+}
+html[data-theme="dark"] .btn-cancel-approve,
+html[data-theme="dark"] .btn-cancel-reject-modal {
+    background: #232a38 !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: #d7dbe2 !important;
+}
+html[data-theme="dark"] .btn-cancel-approve:hover,
+html[data-theme="dark"] .btn-cancel-reject-modal:hover {
+    background: #2a3242 !important;
+    border-color: rgba(255,255,255,0.28) !important;
+}
 </style>
 
 <?php
@@ -198,23 +421,24 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
     $modalId  = 'viewModal'.$prefix.$id_student;
     $ddId     = 'actionsDd'.$prefix.$id_col_val;
     ?>
-    <div class="dropdown">
-        <button class="btn btn-outline-primary btn-sm dropdown-toggle actions-dropdown-toggle" type="button"
+    <div class="dropdown row-actions">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
             id="<?= $ddId ?>" data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
-            <i class="fas fa-ellipsis-v"></i> Actions
+            Actions
         </button>
-        <div class="dropdown-menu dropdown-menu-right actions-dropdown-menu" aria-labelledby="<?= $ddId ?>" data-boundary="window">
-            <div class="actions-dropdown-header">Actions</div>
-            <div class="actions-dropdown-body">
-
+        <div class="dropdown-menu dropdown-menu-right row-actions-menu" aria-labelledby="<?= $ddId ?>">
             <a class="dropdown-item item-view" href="#" data-toggle="modal" data-target="#<?= $modalId ?>">
-                <span class="action-icon-badge"><i class="fa fa-eye"></i></span>View
+                <i class="fa fa-eye"></i>View
+            </a>
+
+            <a class="dropdown-item item-edit" href="#" data-toggle="modal" data-target="#editModal<?= $id_student ?>">
+                <i class="fa fa-pen"></i>Edit
             </a>
 
             <form action="" method="post">
                 <input type="hidden" name="id_ten" value="<?= $id_col_val ?>">
                 <button class="dropdown-item item-archive" type="submit" name="delete_ten">
-                    <span class="action-icon-badge"><i class="fas fa-archive"></i></span>Archive
+                    <i class="fas fa-archive"></i>Archive
                 </button>
             </form>
 
@@ -225,7 +449,7 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
                     <input type="hidden" name="grade_table" value="ten">
                     <input type="hidden" name="mark_requirements_complete" value="1">
                     <button class="dropdown-item item-approve" type="submit">
-                        <span class="action-icon-badge"><i class="fas fa-clipboard-check"></i></span>Mark Complete &amp; Approve
+                        <i class="fas fa-clipboard-check"></i>Mark Complete &amp; Approve
                     </button>
                 </form>
             <?php endif; ?>
@@ -236,12 +460,12 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
                     <input type="hidden" name="id_ten" value="<?= $id_col_val ?>">
                     <input type="hidden" name="approve_ten" value="1">
                     <button class="dropdown-item item-approve" type="submit">
-                        <span class="action-icon-badge"><i class="fas fa-check"></i></span>Approve
+                        <i class="fas fa-check"></i>Approve
                     </button>
                 </form>
                 <button class="dropdown-item item-reject" type="button"
                     onclick="openRejectModal_ten(<?= $id_col_val ?>, '<?= addslashes($fullName) ?>')">
-                    <span class="action-icon-badge"><i class="fas fa-times"></i></span>Reject
+                    <i class="fas fa-times"></i>Reject
                 </button>
             <?php elseif ($status === 'Rejected'): ?>
                 <div class="dropdown-divider"></div>
@@ -249,12 +473,10 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
                     <input type="hidden" name="id_ten" value="<?= $id_col_val ?>">
                     <input type="hidden" name="approve_ten" value="1">
                     <button class="dropdown-item item-approve" type="submit">
-                        <span class="action-icon-badge"><i class="fas fa-check"></i></span>Approve
+                        <i class="fas fa-check"></i>Approve
                     </button>
                 </form>
             <?php endif; ?>
-
-            </div>
         </div>
     </div>
 <?php
@@ -263,29 +485,49 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
 ?>
 
 
+<!-- ===== BULK APPROVE CONFIRM MODAL ===== -->
+<div class="approve-modal-overlay" id="bulkApproveModalOverlay">
+    <div class="approve-modal">
+        <div class="approve-modal-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <h5>Bulk Approve Enrollments?</h5>
+        <p>This will approve <strong id="bulkApproveCount">0</strong> selected enrollment(s).</p>
+        <div class="approve-modal-info">
+            <i class="fas fa-envelope"></i>
+            Email notifications will be sent to all selected students.
+        </div>
+        <div class="approve-modal-actions">
+            <button type="button" class="btn-cancel-approve" onclick="closeBulkApproveModal()">Cancel</button>
+            <button type="button" class="btn-confirm-approve" id="confirmBulkApproveBtn">
+                <i class="fas fa-check"></i> Yes, Approve All
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ===== BULK REJECT REASON MODAL ===== -->
-<div class="modal fade" id="bulkRejectModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius:14px;overflow:hidden;">
-            <div class="modal-header" style="background:#c0392b;color:white;">
-                <h5 class="modal-title"><i class="fas fa-times-circle mr-2"></i>Bulk Reject Enrollments</h5>
-                <button type="button" class="close" data-dismiss="modal" style="color:white;opacity:1;"><span>&times;</span></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-1"><strong id="bulkRejectCount"></strong> enrollment(s) selected.</p>
-                <p class="text-muted small mb-3">Email notifications will be sent to all selected students.</p>
-                <div class="form-group">
-                    <label for="bulk_reject_reason_ten"><strong>Reason for Rejection</strong> <span class="text-muted">(optional, applies to all selected)</span></label>
-                    <textarea class="form-control" id="bulk_reject_reason_ten" rows="3"
-                        placeholder="e.g. Incomplete documents, does not meet age requirement..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmBulkReject('ten')">
-                    <i class="fas fa-times-circle mr-1"></i> Confirm Bulk Reject
-                </button>
-            </div>
+<div class="reject-modal-overlay" id="bulkRejectModalOverlay">
+    <div class="reject-modal">
+        <div class="reject-modal-icon">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h5>Bulk Reject Enrollments?</h5>
+        <p><strong id="bulkRejectCount">0</strong> enrollment(s) selected.</p>
+        <div class="reject-modal-warning">
+            <i class="fas fa-envelope"></i>
+            Email notifications will be sent to all selected students.
+        </div>
+        <div class="form-group">
+            <label for="bulk_reject_reason_ten">Reason for Rejection <span class="text-muted" style="font-weight:400;">(optional, applies to all selected)</span></label>
+            <textarea class="form-control" id="bulk_reject_reason_ten" rows="3"
+                placeholder="e.g. Incomplete documents, does not meet age requirement..."></textarea>
+        </div>
+        <div class="reject-modal-actions">
+            <button type="button" class="btn-cancel-reject-modal" onclick="closeBulkRejectModal()">Cancel</button>
+            <button type="button" class="btn-confirm-reject-modal" onclick="confirmBulkReject('ten')">
+                <i class="fas fa-times-circle"></i> Confirm Bulk Reject
+            </button>
         </div>
     </div>
 </div>
@@ -334,13 +576,12 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
         </div>
     </div>
     <div class="card-body p-0">
-        <div class="table-responsive">
+        <div class="enr-scroll">
             <table class="table table-hover mb-0" id="studentsTable">
                 <thead class="text-center">
                     <tr>
                         <th style="width:34px;"><input type="checkbox" id="selectAllTen" onclick="toggleSelectAll('ten', this)"></th>
-                        <th>LRN</th><th>Course</th><th class="text-left" data-col="name">Full Name</th><th data-col="bdate">Birthday</th><th>Age</th>
-                        <th>Contact</th><th data-col="email">Email</th><th>Documents</th><th><img src="https://cdn.simpleicons.org/mistralai" width="24" height="24" alt="Mistral AI"></th><th>Requirements</th><th data-col="status">Status</th><th>Actions</th>
+                        <th>LRN</th><th>Course</th><th class="text-left" data-col="name">Full Name</th><th data-col="email">Email</th><th>Documents</th><th><img src="https://cdn.simpleicons.org/googlegemini" width="24" height="24" alt="Gemini AI"></th><th>Requirements</th><th data-col="status">Status</th><th>Actions</th>
                     </tr>
                 </thead>
                 <tbody class="text-center">
@@ -357,73 +598,206 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
             <td><?= htmlspecialchars($row['course']) ?></td>
             <td class="text-left">
                 <div class="student-name-cell">
-                    <span class="student-name-text"><?= htmlspecialchars($row['lname']) ?>, <?= htmlspecialchars($row['fname']) ?> <?= htmlspecialchars($row['mi']) ?></span>
+                    <span><?= htmlspecialchars($row['lname']) ?>, <?= htmlspecialchars($row['fname']) ?> <?= htmlspecialchars($row['mi']) ?></span>
                 </div>
             </td>
-            <td><?= htmlspecialchars($row['bdate']) ?></td>
-            <td><?= htmlspecialchars($row['age']) ?></td>
-            <td><?= htmlspecialchars($row['contact']) ?></td>
             <td><?= htmlspecialchars($row['email']) ?></td>
-            <td style="min-width:145px;"><?php renderDocs_ten($row['documents'] ?? '', 'ten_' . $row['id_ten'], $row['ai_analysis'] ?? null); ?></td>
-            <td style="min-width:150px;"><?php render_ai_review_cell($row['ai_analysis'] ?? null, 'ten', $row['id_ten']); ?></td>
+            <td><?php renderDocs_ten($row['documents'] ?? '', 'ten_' . $row['id_ten'], $row['ai_analysis'] ?? null); ?></td>
+            <td><?php render_ai_review_cell($row['ai_analysis'] ?? null, 'ten', $row['id_ten']); ?></td>
             <td><?php renderRequirements_ten($reqStatus); ?></td>
             <td><?php renderStatus_ten($rStatus); ?></td>
-            <td style="min-width:220px;">
+            <td>
                 <?php renderActions_ten($row['id_ten'], $row['id_student'], $rStatus,
                     $row['fname'], $row['lname'], $row['mi'], '', $reqStatus); ?>
             </td>
         </tr>
 
         <!-- View Modal (default) -->
-        <div class="modal fade" id="viewModal<?= $row['id_student'] ?>" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal fade plain-modal" id="viewModal<?= $row['id_student'] ?>" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header py-2">
                         <h5 class="modal-title">Student Information</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                     </div>
-                    <div class="modal-body text-left">
-                        <p><strong>School Year:</strong> <?= htmlspecialchars($row['sy']) ?></p>
-                        <p><strong>Course:</strong> <?= htmlspecialchars($row['course']) ?></p>
-                        <p><strong>LRN:</strong> <?= htmlspecialchars($row['lrn']) ?></p>
-                        <hr style="border:2px solid black;opacity:1;">
-                        <h5><strong>Personal Information</strong></h5>
-                        <p><strong>Full Name:</strong> <?= htmlspecialchars($row['lname']) ?>, <?= htmlspecialchars($row['fname']) ?> <?= htmlspecialchars($row['mi']) ?></p>
-                        <p><strong>Birthday:</strong> <?= htmlspecialchars($row['bdate']) ?></p>
-                        <p><strong>Age:</strong> <?= htmlspecialchars($row['age']) ?></p>
-                        <p><strong>Contact Number:</strong> <?= htmlspecialchars($row['contact']) ?></p>
-                        <p><strong>Email:</strong> <?= htmlspecialchars($row['email']) ?></p>
-                        <p><strong>Current Address:</strong> <?= htmlspecialchars($row['current_address']) ?></p>
-                        <p><strong>Permanent Address:</strong> <?= htmlspecialchars($row['perm_address']) ?></p>
-                        <hr style="border:2px solid black;opacity:1;">
-                        <h5><strong>Father's Information</strong></h5>
-                        <p><strong>Name:</strong> <?= htmlspecialchars($row['flname']) ?>, <?= htmlspecialchars($row['ffname']) ?> <?= htmlspecialchars($row['fmi']) ?></p>
-                        <p><strong>Contact:</strong> <?= htmlspecialchars($row['contact_f']) ?></p>
-                        <hr style="border:2px solid black;opacity:1;">
-                        <h5><strong>Mother's Information</strong></h5>
-                        <p><strong>Name:</strong> <?= htmlspecialchars($row['mlname']) ?>, <?= htmlspecialchars($row['mfname']) ?> <?= htmlspecialchars($row['mmi']) ?></p>
-                        <p><strong>Contact:</strong> <?= htmlspecialchars($row['contact_m']) ?></p>
-                        <hr style="border:2px solid black;opacity:1;">
-                        <h5><strong>For Returning Learner</strong></h5>
-                        <p><strong>Last Grade Level Completed:</strong> <?= htmlspecialchars($row['lglc']) ?></p>
-                        <p><strong>Last School Attended:</strong> <?= htmlspecialchars($row['lsa']) ?></p>
-                        <p><strong>Last School Year Completed:</strong> <?= htmlspecialchars($row['lysc']) ?></p>
-                        <p><strong>School ID:</strong> <?= htmlspecialchars($row['school_id']) ?></p>
-                        <hr style="border:2px solid black;opacity:1;">
-                         <h5><strong>Socioeconomic Information</strong></h5>
-                        <p><strong>IP Member:</strong> <?= htmlspecialchars($row['is_ip'] ?? 'No') ?><?= (!empty($row['ip_group'])) ? ' — ' . htmlspecialchars($row['ip_group']) : '' ?></p>
-                        <p><strong>4Ps Beneficiary:</strong> <?= htmlspecialchars($row['is_4ps'] ?? 'No') ?><?= (!empty($row['fourps_id'])) ? ' — ID: ' . htmlspecialchars($row['fourps_id']) : '' ?></p>
-                        <hr style="border:2px solid black;opacity:1;">
-                        <p><strong>Status:</strong> <?php renderStatus_ten($rStatus); ?></p>
-                        <?php if ($rStatus === 'Rejected' && !empty($row['reject_reason'])): ?>
-                        <p><strong>Rejection Reason:</strong> <?= htmlspecialchars($row['reject_reason']) ?></p>
-                        <?php endif; ?>
+                    <div class="modal-body text-left view-student-body">
+                        <div class="view-grid">
+                            <div class="view-item"><span class="view-label">School Year</span><div class="view-val"><?= htmlspecialchars($row['sy']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Course</span><div class="view-val"><?= htmlspecialchars($row['course']) ?></div></div>
+                            <div class="view-item"><span class="view-label">LRN</span><div class="view-val"><?= htmlspecialchars($row['lrn']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Status</span><div class="view-val"><?php renderStatus_ten($rStatus); ?></div></div>
+                            <?php if ($rStatus === 'Rejected' && !empty($row['reject_reason'])): ?>
+                            <div class="view-item span-4"><span class="view-label">Rejection Reason</span><div class="view-val"><?= htmlspecialchars($row['reject_reason']) ?></div></div>
+                            <?php endif; ?>
+                        </div>
+
+                        <h6 class="edit-section-title">Personal Information</h6>
+                        <div class="view-grid">
+                            <div class="view-item span-2"><span class="view-label">Full Name</span><div class="view-val"><?= htmlspecialchars($row['lname']) ?>, <?= htmlspecialchars($row['fname']) ?> <?= htmlspecialchars($row['mi']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Birthday</span><div class="view-val"><?= htmlspecialchars($row['bdate']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Age</span><div class="view-val"><?= htmlspecialchars($row['age']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Contact Number</span><div class="view-val"><?= htmlspecialchars($row['contact']) ?></div></div>
+                            <div class="view-item span-2"><span class="view-label">Email</span><div class="view-val"><?= htmlspecialchars($row['email']) ?></div></div>
+                            <div class="view-item span-2"><span class="view-label">Current Address</span><div class="view-val"><?= htmlspecialchars($row['current_address']) ?></div></div>
+                            <div class="view-item span-2"><span class="view-label">Permanent Address</span><div class="view-val"><?= htmlspecialchars($row['perm_address']) ?></div></div>
+                        </div>
+
+                        <h6 class="edit-section-title">Parents' Information</h6>
+                        <div class="view-grid">
+                            <div class="view-item"><span class="view-label">Father's Name</span><div class="view-val"><?= htmlspecialchars($row['flname']) ?>, <?= htmlspecialchars($row['ffname']) ?> <?= htmlspecialchars($row['fmi']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Father's Contact</span><div class="view-val"><?= htmlspecialchars($row['contact_f']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Mother's Name</span><div class="view-val"><?= htmlspecialchars($row['mlname']) ?>, <?= htmlspecialchars($row['mfname']) ?> <?= htmlspecialchars($row['mmi']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Mother's Contact</span><div class="view-val"><?= htmlspecialchars($row['contact_m']) ?></div></div>
+                        </div>
+
+                        <h6 class="edit-section-title">For Returning Learner</h6>
+                        <div class="view-grid">
+                            <div class="view-item"><span class="view-label">Last Grade Level Completed</span><div class="view-val"><?= htmlspecialchars($row['lglc']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Last School Attended</span><div class="view-val"><?= htmlspecialchars($row['lsa']) ?></div></div>
+                            <div class="view-item"><span class="view-label">Last School Year Completed</span><div class="view-val"><?= htmlspecialchars($row['lysc']) ?></div></div>
+                            <div class="view-item"><span class="view-label">School ID</span><div class="view-val"><?= htmlspecialchars($row['school_id']) ?></div></div>
+                        </div>
+
+                        <h6 class="edit-section-title">Socioeconomic Information</h6>
+                        <div class="view-grid">
+                            <div class="view-item span-2"><span class="view-label">IP Member</span><div class="view-val"><?= htmlspecialchars($row['is_ip'] ?? 'No') ?><?= (!empty($row['ip_group'])) ? ' — ' . htmlspecialchars($row['ip_group']) : '' ?></div></div>
+                            <div class="view-item span-2"><span class="view-label">4Ps Beneficiary</span><div class="view-val"><?= htmlspecialchars($row['is_4ps'] ?? 'No') ?><?= (!empty($row['fourps_id'])) ? ' — ID: ' . htmlspecialchars($row['fourps_id']) : '' ?></div></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal" data-toggle="modal" data-target="#editModal<?= $row['id_student'] ?>">
+                            <i class="fas fa-pen mr-1"></i> Edit Information
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade plain-modal" id="editModal<?= $row['id_student'] ?>" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <form action="" method="post">
+                        <div class="modal-header py-2">
+                            <h6 class="modal-title font-weight-bold text-ink">Edit Student Information</h6>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
+                        </div>
+                        <div class="modal-body text-left edit-student-body">
+                            <input type="hidden" name="edit_enrollee" value="1">
+                            <input type="hidden" name="grade_table" value="ten">
+                            <input type="hidden" name="id_ten" value="<?= $row['id_ten'] ?>">
+
+                            <h6 class="edit-section-title">Personal Information</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>LRN</label>
+                                    <input type="text" class="form-control form-control-sm" name="lrn" value="<?= htmlspecialchars($row['lrn']) ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Birthday</label>
+                                    <input type="date" class="form-control form-control-sm" name="bdate" value="<?= htmlspecialchars($row['bdate']) ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Age</label>
+                                    <input type="number" min="0" class="form-control form-control-sm" name="age" value="<?= htmlspecialchars($row['age']) ?>">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>Last Name</label>
+                                    <input type="text" class="form-control form-control-sm" name="lname" value="<?= htmlspecialchars($row['lname']) ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>First Name</label>
+                                    <input type="text" class="form-control form-control-sm" name="fname" value="<?= htmlspecialchars($row['fname']) ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Middle Name</label>
+                                    <input type="text" class="form-control form-control-sm" name="mi" maxlength="50" value="<?= htmlspecialchars($row['mi']) ?>">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Contact Number</label>
+                                    <input type="text" class="form-control form-control-sm" name="contact" value="<?= htmlspecialchars($row['contact']) ?>">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Email</label>
+                                    <input type="email" class="form-control form-control-sm" name="email" value="<?= htmlspecialchars($row['email']) ?>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Current Address</label>
+                                <input type="text" class="form-control form-control-sm" name="current_address" value="<?= htmlspecialchars($row['current_address']) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Permanent Address</label>
+                                <input type="text" class="form-control form-control-sm" name="perm_address" value="<?= htmlspecialchars($row['perm_address']) ?>">
+                            </div>
+
+                            <h6 class="edit-section-title">Parent / Guardian Information</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label class="font-weight-semibold">Father's Name</label>
+                                    <input type="text" class="form-control form-control-sm mb-2 text-uppercase-field" name="ffname" placeholder="First Name" pattern="[A-Za-z ]+" title="Letters and spaces only" value="<?= htmlspecialchars($row['ffname']) ?>">
+                                    <input type="text" class="form-control form-control-sm mb-2 text-uppercase-field" name="flname" placeholder="Last Name" pattern="[A-Za-z ]+" title="Letters and spaces only" value="<?= htmlspecialchars($row['flname']) ?>">
+                                    <input type="text" class="form-control form-control-sm mb-2 text-uppercase-field" name="fmi" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]+" title="Letters and spaces only" value="<?= htmlspecialchars($row['fmi']) ?>">
+                                    <input type="text" class="form-control form-control-sm" name="contact_f" placeholder="Contact No." value="<?= htmlspecialchars($row['contact_f']) ?>">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label class="font-weight-semibold">Mother's Maiden Name</label>
+                                    <input type="text" class="form-control form-control-sm mb-2 text-uppercase-field" name="mfname" placeholder="First Name" pattern="[A-Za-z ]+" title="Letters and spaces only" value="<?= htmlspecialchars($row['mfname']) ?>">
+                                    <input type="text" class="form-control form-control-sm mb-2 text-uppercase-field" name="mlname" placeholder="Last Name" pattern="[A-Za-z ]+" title="Letters and spaces only" value="<?= htmlspecialchars($row['mlname']) ?>">
+                                    <input type="text" class="form-control form-control-sm mb-2 text-uppercase-field" name="mmi" placeholder="Middle Name" maxlength="50" pattern="[A-Za-z ]+" title="Letters and spaces only" value="<?= htmlspecialchars($row['mmi']) ?>">
+                                    <input type="text" class="form-control form-control-sm" name="contact_m" placeholder="Contact No." value="<?= htmlspecialchars($row['contact_m']) ?>">
+                                </div>
+                            </div>
+
+                            <h6 class="edit-section-title">Previous Education</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-6"><label>Last Grade Level Completed</label><input type="text" class="form-control form-control-sm" name="lglc" value="<?= htmlspecialchars($row['lglc'] ?? '') ?>"></div>
+                                <div class="form-group col-md-6"><label>Last School Attended</label><input type="text" class="form-control form-control-sm" name="lsa" value="<?= htmlspecialchars($row['lsa'] ?? '') ?>"></div>
+                                <div class="form-group col-md-6"><label>Last School Year Completed</label><input type="text" class="form-control form-control-sm" name="lysc" value="<?= htmlspecialchars($row['lysc'] ?? '') ?>"></div>
+                                <div class="form-group col-md-6"><label>School ID</label><input type="text" class="form-control form-control-sm" name="school_id" value="<?= htmlspecialchars($row['school_id'] ?? '') ?>"></div>
+                            </div>
+
+                            <h6 class="edit-section-title">Socioeconomic Information</h6>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Indigenous People (IP) Member</label>
+                                    <select name="is_ip" class="form-control form-control-sm" onchange="document.getElementById('editIpGroupDiv_<?= $row['id_student'] ?>').style.display = this.value === 'Yes' ? '' : 'none';">
+                                        <option value="No" <?= ((($row['is_ip'] ?? 'No')) === 'Yes') ? '' : 'selected' ?>>No</option>
+                                        <option value="Yes" <?= ((($row['is_ip'] ?? '')) === 'Yes') ? 'selected' : '' ?>>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6" id="editIpGroupDiv_<?= $row['id_student'] ?>" style="<?= ((($row['is_ip'] ?? '')) === 'Yes') ? '' : 'display:none;' ?>">
+                                    <label>IP Group / Tribe</label>
+                                    <input type="text" class="form-control form-control-sm" name="ip_group" placeholder="e.g. Agta, Dumagat, Igorot" value="<?= htmlspecialchars($row['ip_group'] ?? '') ?>">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>4Ps Beneficiary</label>
+                                    <select name="is_4ps" class="form-control form-control-sm" onchange="document.getElementById('editFourpsDiv_<?= $row['id_student'] ?>').style.display = this.value === 'Yes' ? '' : 'none';">
+                                        <option value="No" <?= ((($row['is_4ps'] ?? 'No')) === 'Yes') ? '' : 'selected' ?>>No</option>
+                                        <option value="Yes" <?= ((($row['is_4ps'] ?? '')) === 'Yes') ? 'selected' : '' ?>>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6 mb-0" id="editFourpsDiv_<?= $row['id_student'] ?>" style="<?= ((($row['is_4ps'] ?? '')) === 'Yes') ? '' : 'display:none;' ?>">
+                                    <label>4Ps Household ID</label>
+                                    <input type="text" class="form-control form-control-sm" name="fourps_id" placeholder="4Ps Household ID" value="<?= htmlspecialchars($row['fourps_id'] ?? '') ?>">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer py-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     <?php endforeach; else: ?>
-                <tr><td colspan="13" class="text-center text-muted py-4">No students found.</td></tr>
+                <tr><td colspan="10" class="text-center text-muted py-4">No students found.</td></tr>
                 <?php endif; ?>
                 </tbody>
             </table>
@@ -436,7 +810,7 @@ function renderActions_ten($id_col_val, $id_student, $status, $fname, $lname, $m
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
 <script>
 $(document).ready(function(){
-    var studentsTable_ten = $('#studentsTable').DataTable({ dom: 'rt', paging: false, order: [[3,'asc']], columnDefs: [{ orderable: false, targets: [0, 12] }] });
+    var studentsTable_ten = $('#studentsTable').DataTable({ dom: 'rtp', autoWidth: false, paging: true, pageLength: 15, pagingType: 'simple_numbers', order: [[3,'asc']], columnDefs: [{ orderable: false, targets: [0, 9] }] });
 
     // ===== Filter bar wiring: combined Name/Email search =====
     (function() {
@@ -472,6 +846,82 @@ $(document).ready(function(){
         });
     })();
 });
+</script>
+
+<script>
+/* Row "Actions" dropdown: a plain Bootstrap dropdown (data-display="static" keeps Popper out of it).
+   The table sits in a scroll box, which clips a normal absolutely-positioned menu, so while a menu is
+   open it becomes position:fixed and is placed against its toggle: below by default, above (drop-up)
+   when there isn't enough room underneath. */
+(function () {
+    if (window.__rowActionsReady) return;
+    window.__rowActionsReady = true;
+
+    var GAP = 2, EDGE = 8, openDd = null;
+
+    /* The portal scales pages with CSS zoom (Settings > font size), so getBoundingClientRect() values and
+       position:fixed offsets can be in different units. Measure the viewport and a 100px box the same way
+       the menu is laid out, and convert with that ratio. */
+    function measure() {
+        var vp = document.createElement('div'), box = document.createElement('div');
+        vp.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;visibility:hidden;pointer-events:none;';
+        box.style.cssText = 'width:100px;height:1px;';
+        vp.appendChild(box);
+        document.body.appendChild(vp);
+        var v = vp.getBoundingClientRect(), b = box.getBoundingClientRect();
+        document.body.removeChild(vp);
+        return { w: v.width, h: v.height, k: (b.width / 100) || 1 };
+    }
+
+    function place(dd) {
+        var toggle = dd.querySelector('[data-toggle="dropdown"]');
+        var menu   = dd.querySelector('.dropdown-menu');
+        if (!toggle || !menu) return;
+
+        // Toggle scrolled out of its scroll box: nothing left to attach the menu to.
+        var t = toggle.getBoundingClientRect(), scroller = toggle.closest('.enr-scroll');
+        if (scroller) {
+            var s = scroller.getBoundingClientRect();
+            if (t.bottom < s.top || t.top > s.bottom || t.right < s.left || t.left > s.right) {
+                $(toggle).dropdown('hide');
+                return;
+            }
+        }
+
+        var m = measure();
+        menu.classList.add('is-floating');
+        menu.style.maxHeight = '';
+        menu.style.left = '0px'; menu.style.top = '0px'; menu.style.right = 'auto'; menu.style.bottom = 'auto';
+
+        var mr = menu.getBoundingClientRect(), mw = mr.width, mh = mr.height;
+        var below = m.h - t.bottom - GAP - EDGE, above = t.top - GAP - EDGE;
+        var up    = mh > below && above > below;        // drop-up only when it doesn't fit below and there is more room above
+        var room  = Math.max(80, up ? above : below);
+        if (mh > room) {                                // taller than either side: scroll inside the menu
+            menu.style.maxHeight = (room / m.k) + 'px';
+            mh = menu.getBoundingClientRect().height;
+        }
+
+        var left = Math.max(EDGE, Math.min(t.right - mw, m.w - mw - EDGE));   // right edges line up
+        var top  = up ? t.top - GAP - mh : t.bottom + GAP;
+        menu.style.left = (left / m.k) + 'px';
+        menu.style.top  = (top / m.k) + 'px';
+        dd.classList.toggle('is-dropup', up);
+    }
+
+    $(document).on('shown.bs.dropdown', '.row-actions', function () { openDd = this; place(this); });
+    $(document).on('hidden.bs.dropdown', '.row-actions', function () {
+        var menu = this.querySelector('.dropdown-menu');
+        menu.classList.remove('is-floating');
+        ['top', 'left', 'right', 'bottom', 'maxHeight'].forEach(function (p) { menu.style[p] = ''; });
+        this.classList.remove('is-dropup');
+        if (openDd === this) openDd = null;
+    });
+    window.addEventListener('resize', function () { if (openDd) place(openDd); });
+    window.addEventListener('scroll', function (e) {     // capture: also fires for the table's own scroll box
+        if (openDd && !openDd.contains(e.target)) place(openDd);
+    }, true);
+})();
 </script>
 
 
@@ -546,30 +996,42 @@ document.getElementById('docViewerModal').addEventListener('hidden.bs.modal', fu
     document.getElementById('docViewerSegments').innerHTML = '';
 });
 
+let approveTargetForm_ten = null;
 function confirmApprove_ten(form) {
     var row  = form.closest('tr');
     var name = row ? row.cells[1].innerText.trim() : 'this student';
-    Swal.fire({
-        title: 'Approve Enrollment?',
-        html: 'Are you sure you want to approve <strong>' + name + "</strong>'s enrollment?<br><br>An email notification will be sent to the student.",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#0b2b5c',
-        cancelButtonColor:  '#d33',
-        confirmButtonText:  'Yes, Approve!',
-        cancelButtonText:   'Cancel'
-    }).then(function(result) {
-        if (result.isConfirmed) { form.submit(); }
-    });
+    approveTargetForm_ten = form;
+    document.getElementById('approveStudentName_ten').textContent = name;
+    document.getElementById('approveModalOverlay_ten').classList.add('show');
     return false;
 }
+function closeApproveModal_ten() {
+    document.getElementById('approveModalOverlay_ten').classList.remove('show');
+    approveTargetForm_ten = null;
+}
+document.getElementById('confirmApproveBtn_ten').addEventListener('click', function () {
+    if (approveTargetForm_ten) {
+        showAdminLoading('Approving enrollment...', 'check');
+        approveTargetForm_ten.submit();
+    }
+    closeApproveModal_ten();
+});
+document.getElementById('approveModalOverlay_ten').addEventListener('click', function(e){ if(e.target===this) closeApproveModal_ten(); });
+
+document.getElementById('rejectForm').addEventListener('submit', function () {
+    showAdminLoading('Rejecting enrollment...', 'times');
+});
 
 function openRejectModal_ten(id_col_val, studentName) {
     document.getElementById('rejectIdTen').value = id_col_val;
     document.getElementById('rejectStudentName').textContent = studentName;
     document.getElementById('reject_reason').value = '';
-    $('#rejectModal').modal('show');
+    document.getElementById('rejectModalOverlay_ten').classList.add('show');
 }
+function closeRejectModal_ten() {
+    document.getElementById('rejectModalOverlay_ten').classList.remove('show');
+}
+document.getElementById('rejectModalOverlay_ten').addEventListener('click', function(e){ if(e.target===this) closeRejectModal_ten(); });
 
 /* ================= BULK ACTIONS ================= */
 function getBulkCheckboxes(grade) {
@@ -592,23 +1054,27 @@ function updateBulkCount(grade) {
     if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
 }
 
+let pendingBulkApprove = null;
 function submitBulkAction(grade, action) {
     var checked = getBulkCheckboxes(grade);
     if (checked.length === 0) {
         Swal.fire('No selection', 'Please select at least one enrollment first.', 'warning');
         return;
     }
-    var verb  = action === 'approve' ? 'approve' : 'archive';
-    var color = action === 'approve' ? '#0b2b5c' : '#6c757d';
+    if (action === 'approve') {
+        pendingBulkApprove = { grade: grade, checked: checked };
+        document.getElementById('bulkApproveCount').textContent = checked.length;
+        document.getElementById('bulkApproveModalOverlay').classList.add('show');
+        return;
+    }
     Swal.fire({
-        title: (action === 'approve' ? 'Bulk Approve' : 'Bulk Archive') + '?',
-        html: 'This will ' + verb + ' <strong>' + checked.length + '</strong> selected enrollment(s).' +
-              (action === 'approve' ? '<br><br>Email notifications will be sent to all selected students.' : ''),
+        title: 'Bulk Archive?',
+        html: 'This will archive <strong>' + checked.length + '</strong> selected enrollment(s).',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: color,
+        confirmButtonColor: '#6c757d',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, ' + (action === 'approve' ? 'Approve' : 'Archive') + '!',
+        confirmButtonText: 'Yes, Archive!',
         cancelButtonText: 'Cancel'
     }).then(function(result) {
         if (result.isConfirmed) {
@@ -616,6 +1082,17 @@ function submitBulkAction(grade, action) {
         }
     });
 }
+function closeBulkApproveModal() {
+    document.getElementById('bulkApproveModalOverlay').classList.remove('show');
+    pendingBulkApprove = null;
+}
+document.getElementById('confirmBulkApproveBtn').addEventListener('click', function () {
+    if (pendingBulkApprove) {
+        buildAndSubmitBulkForm(pendingBulkApprove.grade, 'approve', pendingBulkApprove.checked, '');
+    }
+    closeBulkApproveModal();
+});
+document.getElementById('bulkApproveModalOverlay').addEventListener('click', function(e){ if(e.target===this) closeBulkApproveModal(); });
 
 function openBulkRejectModal(grade) {
     var checked = getBulkCheckboxes(grade);
@@ -626,13 +1103,17 @@ function openBulkRejectModal(grade) {
     document.getElementById('bulkRejectCount').textContent = checked.length;
     var reasonBox = document.getElementById('bulk_reject_reason_' + grade);
     if (reasonBox) reasonBox.value = '';
-    $('#bulkRejectModal').modal('show');
+    document.getElementById('bulkRejectModalOverlay').classList.add('show');
 }
+function closeBulkRejectModal() {
+    document.getElementById('bulkRejectModalOverlay').classList.remove('show');
+}
+document.getElementById('bulkRejectModalOverlay').addEventListener('click', function(e){ if(e.target===this) closeBulkRejectModal(); });
 
 function confirmBulkReject(grade) {
     var checked = getBulkCheckboxes(grade);
     var reason  = (document.getElementById('bulk_reject_reason_' + grade) || {}).value || '';
-    $('#bulkRejectModal').modal('hide');
+    closeBulkRejectModal();
     buildAndSubmitBulkForm(grade, 'reject', checked, reason);
 }
 
@@ -663,6 +1144,8 @@ function buildAndSubmitBulkForm(grade, action, checkedNodeList, reason) {
         form.appendChild(reasonField);
     }
 
+    var __label = action === 'approve' ? 'Approving selected enrollments...' : (action === 'reject' ? 'Rejecting selected enrollments...' : 'Archiving selected enrollments...');
+    showAdminLoading(__label, action === 'approve' ? 'check' : (action === 'reject' ? 'times' : 'archive'));
     form.submit();
 }
 </script>

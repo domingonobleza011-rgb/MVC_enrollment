@@ -1,22 +1,5 @@
 <?php
-/**
- * Shared "AI Review" column UI for the admin enrollment tables.
- * Include this once near the top of each admn_*_search.php file, then call
- * render_ai_review_cell() inside the row loop.
- */
 
-/**
- * The AI's own "overall_flag" tends to hedge loosely rather than strictly
- * deriving from its own per-document verdicts, so we recompute it ourselves
- * from the documents array.
- *
- * IMPORTANT: a document only counts as verified when name_match is
- * explicitly "Matched". "Not visible on this document" means nothing was
- * actually confirmed on that file — it must NOT be treated as equivalent
- * to a match, or every enrollee whose documents simply don't show a
- * printed name would get an undeserved "Matched" badge with zero
- * verification behind it.
- */
 function compute_effective_flag($ai) {
     if (empty($ai['documents'])) {
         return $ai['overall_flag'] ?? 'needs_review';
@@ -47,7 +30,6 @@ function compute_effective_flag($ai) {
     return 'ok';
 }
 
-/** Badge + "View" button for the table cell. Call once per row. */
 function render_ai_review_cell($aiAnalysisJson, $grade, $recordId) {
     $ai = $aiAnalysisJson ? json_decode($aiAnalysisJson, true) : null;
     $modalId = "aiModal_{$grade}_{$recordId}";

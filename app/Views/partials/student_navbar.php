@@ -7,7 +7,26 @@ if (!isset($active_page)) {
     $active_page = '';
 }
 
+// Who is logged in (shown in the account menu). Falls back gracefully if a page
+// doesn't provide the name fields.
+if (!function_exists('fb_first_char')) {
+    function fb_first_char($str) {
+        $str = trim((string)$str);
+        if ($str === '') return '';
+        $c = function_exists('mb_substr') ? mb_substr($str, 0, 1) : substr($str, 0, 1);
+        return function_exists('mb_strtoupper') ? mb_strtoupper($c) : strtoupper($c);
+    }
+}
+$nav_first_name = trim((string)($userdetails['firstname'] ?? ''));
+$nav_surname    = trim((string)($userdetails['surname'] ?? ''));
+$nav_full_name  = trim($nav_first_name . ' ' . $nav_surname);
+$nav_initials   = fb_first_char($nav_first_name) . fb_first_char($nav_surname);
+if ($nav_full_name === '') $nav_full_name = 'Student';
+if ($nav_initials === '')  $nav_initials = 'S';
+$nav_short_name = $nav_first_name !== '' ? $nav_first_name : 'Account';
+
 $notif_unread_count = $eusebia->get_unread_notification_count($current_user_id);
+$msg_unread_count   = method_exists($eusebia, 'chat_student_unread') ? $eusebia->chat_student_unread($current_user_id) : 0;
 $notif_list = $eusebia->get_notifications($current_user_id, 8);
 
 if (!function_exists('fb_notif_time_ago')) {
@@ -31,8 +50,8 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
     ob_start();
     ?>
     <div class="dropdown">
-        <button class="fb-nav-item js-notif-bell" id="notifBell<?= $idSuffix ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
-            <i class="fas fa-bell"></i><span class="fb-nav-label">Notifications</span>
+        <button class="fb-icon-btn js-notif-bell" id="notifBell<?= $idSuffix ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications" title="Notifications">
+            <i class="fas fa-bell"></i>
             <?php if ($notif_unread_count > 0): ?>
                 <span class="fb-notif-badge"><?= $notif_unread_count > 9 ? '9+' : $notif_unread_count ?></span>
             <?php endif; ?>
@@ -64,6 +83,7 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
     return ob_get_clean();
 }
 ?>
+<?php include(VIEWS_PATH . '/partials/admin_loading_overlay.php'); ?>
 <style>
     :root {
         --navbar-height: 56px;
@@ -71,6 +91,16 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
         --bg-card: #ffffff;
         --brand-color: #0f3b7a;
     }
+<?php if (empty($navbar_skip_body_layout)): ?>
+    html, body {
+        height: 100%;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+<?php endif; ?>
 
     .fb-navbar {
         position: sticky;
@@ -79,13 +109,18 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
         background: linear-gradient(135deg, #0b2b5c 0%, #0f3b7a 100%);
         box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         height: var(--navbar-height);
-        
         padding: 0 1.25rem;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: auto;
     }
+
+    /* LEFT: logo + school name (always links home) */
     .fb-navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         font-family: 'Playfair Display', serif;
         font-weight: 700;
         font-size: 1.1rem;
@@ -94,80 +129,223 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
         white-space: nowrap;
         flex-shrink: 0;
     }
-    .fb-nav-icons {
-        display: flex;
-        align-items: center;
-        height: 100%;
-        gap: 2.5rem;
-        margin: 0 auto;
+    .fb-navbar-brand:hover { color: #ffffff; }
+    .fb-brand-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #ffffff;
+        object-fit: contain;
+        padding: 2px;
+        flex-shrink: 0;
     }
-    .fb-nav-item {
+
+    /* Main links sit right after the logo, left-aligned */
+    .fb-nav-links {
+        display: flex;
+        align-items: stretch;
+        height: 100%;
+        gap: 0.25rem;
+        margin-left: 1.25rem;
+    }
+    .fb-nav-link {
         position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
         gap: 0.5rem;
-        height: 100%;
-        padding: 0 0.85rem;
-        font-size: 1.4rem;
-        color: rgba(255,255,255,0.65);
-        text-decoration: none;
-        transition: color 0.15s ease;
-        border: none;
-        background: none;
-        cursor: pointer;
-    }
-    .fb-nav-label {
-        font-size: 0.9rem;
+        padding: 0 0.95rem;
+        font-size: 0.92rem;
         font-weight: 500;
-        letter-spacing: -0.011em;
+        color: rgba(255,255,255,0.72);
+        text-decoration: none;
+        transition: color 0.15s ease, background-color 0.15s ease;
     }
-    .fb-nav-item:hover {
+    .fb-nav-link i { font-size: 1rem; }
+    .fb-nav-badge {
+        background: #dc3545; color: #fff; font-size: .68rem; font-weight: 700;
+        min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+        display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+    }
+    .fb-nav-link:hover {
         color: #ffffff;
+        background: rgba(255,255,255,0.08);
     }
-    .fb-nav-item.active {
+    .fb-nav-link.active {
         color: #ffffff;
+        font-weight: 600;
     }
-    .fb-nav-item.active::after {
+    /* visible "you are here" underline */
+    .fb-nav-link.active::after {
         content: '';
         position: absolute;
+        left: 0.6rem;
+        right: 0.6rem;
         bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 65%;
         height: 3px;
         border-radius: 3px 3px 0 0;
-    }
-    .fb-nav-spacer {
-        flex-shrink: 0;
-        width: 90px;
+        background: #ffffff;
     }
 
-    /* Right-hand cluster on mobile: bell stays, hamburger opens the drawer */
+    /* RIGHT: notifications + account */
+    .fb-nav-right {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-left: auto;
+    }
+    .fb-icon-btn {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.10);
+        color: #ffffff;
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .fb-icon-btn:hover,
+    .fb-icon-btn[aria-expanded="true"] { background: rgba(255,255,255,0.22); }
+
+    .fb-account-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        height: 40px;
+        padding: 0 0.7rem 0 0.35rem;
+        border: none;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.10);
+        color: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    .fb-account-btn:hover,
+    .fb-account-btn[aria-expanded="true"] { background: rgba(255,255,255,0.22); }
+    .fb-account-name {
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .fb-account-caret { font-size: 0.65rem; opacity: 0.8; }
+
+    .fb-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.4);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .fb-nav-link:focus-visible,
+    .fb-icon-btn:focus-visible,
+    .fb-account-btn:focus-visible,
+    .fb-menu-toggle:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: -2px;
+    }
+
+    /* Account dropdown (same look as the notification panel) */
+    .fb-account-menu {
+        width: 260px;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+        padding: 8px;
+        margin-top: 10px;
+    }
+    .fb-account-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px 12px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid #eef1f6;
+    }
+    .fb-account-header .fb-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
+        background: #0f3b7a;
+        border-color: #0f3b7a;
+    }
+    .fb-account-header-name {
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: #1a2c3e;
+        line-height: 1.25;
+        word-break: break-word;
+    }
+    .fb-account-header-role {
+        font-size: 0.78rem;
+        color: #7a8a99;
+    }
+    .fb-account-menu .dropdown-item,
+    .fb-mobile-menu-panel .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        color: #1a2c3e;
+        font-weight: 500;
+        font-size: 0.92rem;
+    }
+    .fb-account-menu .dropdown-item:hover,
+    .fb-account-menu .dropdown-item.active,
+    .fb-mobile-menu-panel .dropdown-item:hover { background: #eef1f6; color: #1a2c3e; }
+    .fb-account-menu .dropdown-item .icon-wrap,
+    .fb-mobile-menu-panel .dropdown-item .icon-wrap {
+        width: 20px;
+        color: #4a5a6a;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* Mobile: bell + hamburger on the right (hidden on desktop) */
     .fb-mobile-actions {
         display: none;
         align-items: center;
-        height: 100%;
-        gap: 0.25rem;
+        gap: 0.4rem;
+        margin-left: auto;
     }
     .fb-menu-toggle {
+        width: 40px;
+        height: 40px;
         border: none;
-        background: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.10);
         color: #ffffff;
-        font-size: 1.3rem;
-        width: 44px;
-        height: 44px;
+        font-size: 1.15rem;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
     }
+    .fb-menu-toggle:hover,
+    .fb-menu-toggle[aria-expanded="true"] { background: rgba(255,255,255,0.22); }
 
     /* Notification bell */
     .fb-notif-badge {
         position: absolute;
-        top: 6px;
-        right: 2px;
+        top: -2px;
+        right: -2px;
         min-width: 17px;
         height: 17px;
         padding: 0 4px;
@@ -272,102 +450,129 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
         margin-top: 4px;
     }
 
-    /* ===== MOBILE MENU DROPDOWN (Home / Submissions / Change Password / Logout) ===== */
+    /* ===== MOBILE MENU (hamburger) ===== */
     .fb-mobile-menu-panel {
-        width: 230px;
+        width: 250px;
         border: none;
-        border-radius: 16px;
+        border-radius: 12px;
         box-shadow: 0 12px 28px rgba(0,0,0,0.18);
         padding: 8px;
         margin-top: 10px;
     }
-    .fb-mobile-menu-panel .side-link {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        color: #1a2c3e;
-        text-decoration: none;
-        font-weight: 500;
-        margin-bottom: 2px;
-    }
-    .fb-mobile-menu-panel .side-link:hover,
-    .fb-mobile-menu-panel .side-link.active { background: #eef1f6; }
-    .fb-mobile-menu-panel .side-link .icon-wrap {
-        width: 20px;
-        color: #4a5a6a;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1rem;
-        flex-shrink: 0;
-    }
+    .fb-mobile-menu-panel .dropdown-item.active { background: #eef1f6; color: #1a2c3e; font-weight: 600; }
 
+    @media (max-width: 992px) {
+        .fb-account-name, .fb-account-caret { display: none; }   /* avatar only on tablets */
+        .fb-account-btn { padding: 0 0.35rem; }
+    }
     @media (max-width: 768px) {
-        .fb-nav-icons { display: none; }       /* inline row hidden on mobile */
-        .fb-mobile-actions { display: flex; }  /* bell + hamburger shown instead */
-        .fb-nav-spacer { display: none; }
+        .fb-nav-links, .fb-nav-right { display: none; }   /* desktop layout hidden */
+        .fb-mobile-actions { display: flex; }             /* bell + hamburger shown */
+        .fb-navbar { padding: 0 0.85rem; }
     }
 </style>
 
-<nav class="fb-navbar">
-    <a class="fb-navbar-brand" href="student_homepage.php">
-        <i class="bi bi-mortarboard-fill me-1"></i> EPAMNHS
+<nav class="fb-navbar" aria-label="Main navigation">
+    <!-- LEFT: logo + school name, always links home -->
+    <a class="fb-navbar-brand" href="student_homepage.php" title="Eusebia Paz Arroyo Memorial National High School">
+        <img class="fb-brand-logo" src="icons/Documents/eusebia.png" alt="">
+        <span>EPAMNHS</span>
     </a>
 
-    <!-- Desktop inline nav (hidden on mobile) -->
-    <div class="fb-nav-icons">
-        <a class="fb-nav-item<?= $active_page === 'dashboard' ? ' active' : '' ?>" href="student_homepage.php" title="Dashboard">
-            <i class="fas fa-home"></i><span class="fb-nav-label">Home</span>
+    <!-- Main links, left-aligned next to the logo (desktop) -->
+    <div class="fb-nav-links">
+        <a class="fb-nav-link<?= $active_page === 'dashboard' ? ' active' : '' ?>" href="student_homepage.php"<?= $active_page === 'dashboard' ? ' aria-current="page"' : '' ?>>
+            <i class="fas fa-home"></i><span>Home</span>
         </a>
-        <a class="fb-nav-item<?= $active_page === 'submissions' ? ' active' : '' ?>" href="my_submissions.php?id_student=<?= $current_user_id ?>" title="My Submissions">
-            <i class="fas fa-file-alt"></i><span class="fb-nav-label">Submissions</span>
+        <a class="fb-nav-link<?= $active_page === 'submissions' ? ' active' : '' ?>" href="my_submissions.php?id_student=<?= $current_user_id ?>"<?= $active_page === 'submissions' ? ' aria-current="page"' : '' ?>>
+            <i class="fas fa-file-alt"></i><span>My Submissions</span>
         </a>
-
-        <?= render_notif_bell('Desktop', $notif_unread_count, $notif_list) ?>
-
-        <a class="fb-nav-item<?= $active_page === 'changepass' ? ' active' : '' ?>" href="student_changepass.php?id_student=<?= $current_user_id ?>" title="Change Password">
-            <i class="fas fa-key"></i><span class="fb-nav-label">Change Password</span>
-        </a>
-        <a class="fb-nav-item" href="#" title="Logout" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
-            <i class="fas fa-sign-out-alt"></i><span class="fb-nav-label">Logout</span>
+        <a class="fb-nav-link<?= $active_page === 'messages' ? ' active' : '' ?>" href="student_messages.php"<?= $active_page === 'messages' ? ' aria-current="page"' : '' ?>>
+            <i class="fas fa-comments"></i><span>Messages</span>
+            <?php if ($msg_unread_count > 0): ?><span class="fb-nav-badge"><?= $msg_unread_count > 9 ? '9+' : $msg_unread_count ?></span><?php endif; ?>
         </a>
     </div>
-    <div class="fb-nav-spacer"></div>
 
-    <!-- Mobile-only: bell stays visible, hamburger opens a compact dropdown -->
+    <!-- RIGHT (desktop): notifications, then the account menu -->
+    <div class="fb-nav-right">
+        <?= render_notif_bell('Desktop', $notif_unread_count, $notif_list) ?>
+
+        <div class="dropdown">
+            <button class="fb-account-btn" id="accountMenuBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu">
+                <span class="fb-avatar"><?= htmlspecialchars($nav_initials) ?></span>
+                <span class="fb-account-name"><?= htmlspecialchars($nav_short_name) ?></span>
+                <i class="fas fa-chevron-down fb-account-caret"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end fb-account-menu" aria-labelledby="accountMenuBtn">
+                <li class="fb-account-header">
+                    <span class="fb-avatar"><?= htmlspecialchars($nav_initials) ?></span>
+                    <div>
+                        <div class="fb-account-header-name"><?= htmlspecialchars($nav_full_name) ?></div>
+                        <div class="fb-account-header-role">Student</div>
+                    </div>
+                </li>
+                <li>
+                    <a class="dropdown-item<?= $active_page === 'changepass' ? ' active' : '' ?>" href="student_changepass.php?id_student=<?= $current_user_id ?>">
+                        <span class="icon-wrap"><i class="fas fa-key"></i></span> Change Password
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+                        <span class="icon-wrap"><i class="fas fa-sign-out-alt"></i></span> Log out
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Mobile-only: bell stays visible, hamburger opens the same menu -->
     <div class="fb-mobile-actions">
         <?= render_notif_bell('Mobile', $notif_unread_count, $notif_list) ?>
         <div class="dropdown">
-            <button class="fb-menu-toggle" id="menuToggleBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu">
+            <button class="fb-menu-toggle" id="menuToggleBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu" title="Menu">
                 <i class="fas fa-bars"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end fb-mobile-menu-panel" aria-labelledby="menuToggleBtn">
+                <li class="fb-account-header">
+                    <span class="fb-avatar"><?= htmlspecialchars($nav_initials) ?></span>
+                    <div>
+                        <div class="fb-account-header-name"><?= htmlspecialchars($nav_full_name) ?></div>
+                        <div class="fb-account-header-role">Student</div>
+                    </div>
+                </li>
                 <li>
-                    <a href="student_homepage.php" class="side-link<?= $active_page === 'dashboard' ? ' active' : '' ?>">
+                    <a href="student_homepage.php" class="dropdown-item<?= $active_page === 'dashboard' ? ' active' : '' ?>">
                         <span class="icon-wrap"><i class="fas fa-home"></i></span> Home
                     </a>
                 </li>
                 <li>
-                    <a href="my_submissions.php?id_student=<?= $current_user_id ?>" class="side-link<?= $active_page === 'submissions' ? ' active' : '' ?>">
+                    <a href="my_submissions.php?id_student=<?= $current_user_id ?>" class="dropdown-item<?= $active_page === 'submissions' ? ' active' : '' ?>">
                         <span class="icon-wrap"><i class="fas fa-file-alt"></i></span> My Submissions
                     </a>
                 </li>
                 <li>
-                    <a href="student_changepass.php?id_student=<?= $current_user_id ?>" class="side-link<?= $active_page === 'changepass' ? ' active' : '' ?>">
+                    <a href="student_messages.php" class="dropdown-item<?= $active_page === 'messages' ? ' active' : '' ?>">
+                        <span class="icon-wrap"><i class="fas fa-comments"></i></span> Messages<?php if ($msg_unread_count > 0): ?> <span class="fb-nav-badge"><?= $msg_unread_count > 9 ? '9+' : $msg_unread_count ?></span><?php endif; ?>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a href="student_changepass.php?id_student=<?= $current_user_id ?>" class="dropdown-item<?= $active_page === 'changepass' ? ' active' : '' ?>">
                         <span class="icon-wrap"><i class="fas fa-key"></i></span> Change Password
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="side-link" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
-                        <span class="icon-wrap"><i class="fas fa-sign-out-alt"></i></span> Logout
-                    </a>
+                    <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+                        <span class="icon-wrap"><i class="fas fa-sign-out-alt"></i></span> Log out
+                    </button>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
 
-<!-- Logout confirmation modal (shared by desktop icon bar + mobile menu) -->
+<!-- Logout confirmation modal (opened from the account menu on desktop, hamburger on mobile) -->
 <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -380,7 +585,7 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="logout.php" class="btn btn-danger">Yes, log out</a>
+                <a href="logout.php" class="btn btn-danger" onclick="showAdminLoading('Logging out...', 'sign-out-alt')">Yes, log out</a>
             </div>
         </div>
     </div>
@@ -423,6 +628,20 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
                     });
                 })
                 .catch(function () { btn.disabled = false; });
+        });
+
+       
+        document.querySelectorAll('.fb-navbar-brand, .fb-nav-link, .fb-account-menu a.dropdown-item, .fb-mobile-menu-panel a.dropdown-item').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+
+                var href = link.getAttribute('href');
+                if (!href || href === '#' || href.indexOf('javascript:') === 0) return;
+                if (link.hasAttribute('data-toggle') || link.hasAttribute('data-bs-toggle')) return;
+                if (link.target && link.target !== '' && link.target !== '_self') return;
+
+                if (typeof showAdminLoading === 'function') showAdminLoading('Loading...');
+            });
         });
     })();
 </script>

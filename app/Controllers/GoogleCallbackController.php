@@ -25,9 +25,9 @@ require_once(MODELS_PATH . '/conn.php');       // provides $conn (PDO)
 require_once(MODELS_PATH . '/main.class.php'); // EUSEBIAClass (has set_userdata)
 
 // ── Your Google OAuth credentials (from Google Cloud Console) ────────────────
-$client_id     = '240563055427-rjbnika18eosfvn9m7mepdr4uumrr10n.apps.googleusercontent.com';
-$client_secret = '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'; // <-- add this from Cloud Console
-$redirect_uri  = 'https://eusebianationalhighschool.gt.tc/google_callback.php';
+$client_id     = '240563055427-f8m83d6t72de5ck1leqrvuduenbghoon.apps.googleusercontent.com';
+$client_secret = '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'; // <-- add this from Cloud Console
+$redirect_uri  = 'https://eusebianationalhighschool.fwh.is/google_callback.php';
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Error from Google (user cancelled, etc.)
@@ -140,6 +140,7 @@ if ($student) {
 
     if ($approval_status === 'pending') {
         $_SESSION['pending_approval_name'] = trim(($student['fname'] ?? '') . ' ' . ($student['lname'] ?? ''));
+        $_SESSION['pending_approval_contact_type'] = 'email'; // Google sign-in is always email-based
         header('Location: pending_approval.php');
         exit();
     }
@@ -156,49 +157,19 @@ if ($student) {
     exit();
 }
 
-// ── Step 4: NEW STUDENT — auto-register, then require email code + admin approval ──
-try {
-    $stmt = $conn->prepare("
-        INSERT INTO tbl_student (
-            `email`, `phone_number`, `password`,
-            `lname`, `fname`, `mi`,
-            `age`, `sex`, `status`,
-            `houseno`, `street`, `brgy`, `municipal`,
-            `contact`, `bdate`, `bplace`, `nationality`,
-            `addedby`
-        ) VALUES (
-            ?, NULL, ?,
-            ?, ?, '',
-            0, '', '',
-            '', '', '', '',
-            '', '', '', '',
-            'Google'
-        )
-    ");
-
-    // Random secure password — login is via Google so it will never be used directly
-    $random_password = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
-
-    $stmt->execute([
-        $google_email,
-        $random_password,
-        $google_lname,
-        $google_fname,
-    ]);
-
-    $new_id = $conn->lastInsertId();
-
-    // NOT logged in yet — they must verify their email, then wait for admin approval.
-    $eusebia->generate_and_send_verification_code($new_id);
-    $_SESSION['pending_verify_id'] = $new_id;
-    header('Location: verify_email.php');
-    exit();
-
-} catch (PDOException $e) {
-    $_SESSION['google_error'] = 'Registration error: ' . $e->getMessage();
-    header('Location: login.php');
-    exit();
-}
+// ── Step 4: NEW STUDENT — Google only verifies their identity here.
+//    They must still complete the actual registration form (personal info,
+//    address, contact number, password, terms) before an account exists.
+//    We stash the Google-verified email/name in session so the form can
+//    prefill and lock the email, then let student_registration.php handle
+//    the real INSERT via the normal create_student() flow. ──────────────
+$_SESSION['google_pending'] = [
+    'email' => $google_email,
+    'fname' => $google_fname,
+    'lname' => $google_lname,
+];
+header('Location: student_registration.php');
+exit();
 
     }
 }

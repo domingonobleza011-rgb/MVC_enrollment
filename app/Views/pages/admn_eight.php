@@ -10,16 +10,16 @@
 
 <div class="container-fluid">
 
-    <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-3 grade-page-head">
         <div>
             <h4 class="mb-0 font-weight-bold text-dark">
-                <i class="fas fa-users mr-2" style="color:#0b2b5c;"></i>Grade 8 — Student List
+                <i class="fas fa-users mr-2 text-ink"></i>Grade 8 — Student List
             </h4>
             <small class="text-muted">
                 All enrollees &nbsp;|&nbsp; <?= is_array($view) ? count($view) : 0 ?> student(s)
             </small>
         </div>
-        <div>
+        <div class="grade-page-actions">
             <?php
                 $grade = 'eight'; $gradeNumber = '8'; $hasCourse = false;
                 include(VIEWS_PATH . '/partials/admn_add_enrollee_modal.php');

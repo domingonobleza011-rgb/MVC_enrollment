@@ -11,15 +11,14 @@
   });
 
   // Close any open menu accordions when window is resized below 768px
+  //
+  // NOTE: the original theme also auto-added the "toggled" class below 480px
+  // width. That's been removed on purpose: our mobile CSS repurposes
+  // ".toggled" to mean "drawer is open" (see dashboard_sidebar_end.php), so
+  // that vendor behavior would silently pop the drawer open on any resize or
+  // orientation-change event on a phone.
   $(window).resize(function() {
     if ($(window).width() < 768) {
-      $('.sidebar .collapse').collapse('hide');
-    };
-    
-    // Toggle the side navigation when window is resized below 480px
-    if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
-      $("body").addClass("sidebar-toggled");
-      $(".sidebar").addClass("toggled");
       $('.sidebar .collapse').collapse('hide');
     };
   });

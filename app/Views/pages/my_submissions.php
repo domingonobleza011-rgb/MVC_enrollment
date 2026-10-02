@@ -258,7 +258,7 @@
                         </div>
                         <?php endif; ?>
                         <div class="mt-3 text-end">
-                            <a href="<?= htmlspecialchars($sub['edit_page']) ?>?edit=<?= (int)$sub['edit_pk'] ?>" class="btn btn-sm rounded-pill px-3" style="background:#0b2b5c; color:#fff;">
+                            <a href="<?= htmlspecialchars($sub['edit_page']) ?>?edit=<?= (int)$sub['edit_pk'] ?>&grade=<?= (int)$sub['edit_grade'] ?>" class="btn btn-sm rounded-pill px-3" style="background:#0b2b5c; color:#fff;">
                                 <i class="fas fa-edit me-1"></i> Edit &amp; Resubmit
                             </a>
                         </div>

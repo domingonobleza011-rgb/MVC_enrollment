@@ -17,12 +17,12 @@ $my_promotion_requests = $eusebia->get_my_promotion_requests();
 $connection = $eusebia->openConn();
 
 $grades = [
-    ['table' => 'tbl_seven',  'pk' => 'id_seven',  'label' => 'Grade 7',  'level' => 'Junior High - 1st Year', 'page' => 'grade7.php'],
-    ['table' => 'tbl_eight',  'pk' => 'id_eight',  'label' => 'Grade 8',  'level' => 'Junior High - 2nd Year', 'page' => 'grade8.php'],
-    ['table' => 'tbl_nine',   'pk' => 'id_nine',   'label' => 'Grade 9',  'level' => 'Junior High - 3rd Year', 'page' => 'grade9.php'],
-    ['table' => 'tbl_ten',    'pk' => 'id_ten',    'label' => 'Grade 10', 'level' => 'Junior High - 4th Year', 'page' => 'grade10.php'],
-    ['table' => 'tbl_eleven', 'pk' => 'id_eleven', 'label' => 'Grade 11', 'level' => 'Senior High - 11th',     'page' => 'grade11.php'],
-    ['table' => 'tbl_twelve', 'pk' => 'id_twelve', 'label' => 'Grade 12', 'level' => 'Senior High - 12th',     'page' => 'grade12.php'],
+    ['table' => 'tbl_seven',  'pk' => 'id_seven',  'label' => 'Grade 7',  'level' => 'Junior High - 1st Year', 'page' => 'student_enrollment.php', 'grade' => 7],
+    ['table' => 'tbl_eight',  'pk' => 'id_eight',  'label' => 'Grade 8',  'level' => 'Junior High - 2nd Year', 'page' => 'student_enrollment.php', 'grade' => 8],
+    ['table' => 'tbl_nine',   'pk' => 'id_nine',   'label' => 'Grade 9',  'level' => 'Junior High - 3rd Year', 'page' => 'student_enrollment.php', 'grade' => 9],
+    ['table' => 'tbl_ten',    'pk' => 'id_ten',    'label' => 'Grade 10', 'level' => 'Junior High - 4th Year', 'page' => 'student_enrollment.php', 'grade' => 10],
+    ['table' => 'tbl_eleven', 'pk' => 'id_eleven', 'label' => 'Grade 11', 'level' => 'Senior High - 11th',     'page' => 'student_enrollment.php', 'grade' => 11],
+    ['table' => 'tbl_twelve', 'pk' => 'id_twelve', 'label' => 'Grade 12', 'level' => 'Senior High - 12th',     'page' => 'student_enrollment.php', 'grade' => 12],
 ];
 
 $all_submissions = [];
@@ -38,6 +38,7 @@ foreach ($grades as $g) {
             $row['grade_label'] = $g['label'];
             $row['grade_level'] = $g['level'];
             $row['edit_page']   = $g['page'];
+            $row['edit_grade']  = $g['grade'];
             $row['edit_pk']     = $row[$g['pk']];
             $all_submissions[] = $row;
         }

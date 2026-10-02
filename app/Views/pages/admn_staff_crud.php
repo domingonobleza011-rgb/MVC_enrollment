@@ -133,7 +133,7 @@
                 <h5 class="modal-title"><i class="fas fa-user-edit mr-2"></i>Edit Teacher Record</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
-            <form method="post">
+            <form method="post" id="editTeacherForm">
                 <div class="modal-body">
                     <input type="hidden" name="id_user" id="edit_id_user">
                     <div class="row">
@@ -151,8 +151,8 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="font-weight-bold small">Middle Initial</label>
-                                <input type="text" class="form-control form-control-sm" name="mi" id="edit_mi" maxlength="5">
+                                <label class="font-weight-bold small">Middle Name</label>
+                                <input type="text" class="form-control form-control-sm" name="mi" id="edit_mi" maxlength="50">
                             </div>
                         </div>
                     </div>
@@ -306,6 +306,10 @@ $(document).ready(function() {
     $('#teacherTable').DataTable({ pageLength: 15, order: [[1,'asc']], columnDefs: [{ orderable: false, targets: [9] }] });
 });
 
+$('#editTeacherForm').on('submit', function() {
+    showAdminLoading('Updating teacher record...', 'pencil-alt');
+});
+
 $('.edit-btn').on('click', function() {
     const b = $(this);
     $('#edit_id_user').val(b.data('id'));
@@ -343,6 +347,7 @@ $(document).on('click', '.delete-btn', function() {
     }).then(function(result) {
         if (result.isConfirmed) {
             $('#delete_id_user').val(id);
+            showAdminLoading('Deleting teacher record...', 'trash');
             $('#deleteForm').submit();
         }
     });

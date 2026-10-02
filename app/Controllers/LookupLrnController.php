@@ -22,13 +22,19 @@ $tables = [
     'tbl_twelve' => 'id_twelve',
 ];
 
-$fields = 'lrn, lname, fname, mi, bdate, sex, age, contact, email,
+// Only these grade tables have a "course" (strand) column
+$tables_with_course = ['tbl_nine', 'tbl_ten', 'tbl_eleven', 'tbl_twelve'];
+
+$base_fields = 'lrn, lname, fname, mi, bdate, sex, age, contact, email,
            current_address, perm_address,
            ffname, flname, fmi, contact_f,
            mlname, mfname, mmi, contact_m,
            lglc, lsa, lysc, school_id';
 
 foreach ($tables as $tbl => $pk) {
+    $fields = in_array($tbl, $tables_with_course, true)
+        ? $base_fields . ', course'
+        : $base_fields;
     try {
         // Simple query — no ORDER BY on columns that may not exist yet
         $stmt = $conn->prepare(

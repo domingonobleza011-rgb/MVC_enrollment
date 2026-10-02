@@ -19,6 +19,7 @@ class AdmnTwelveController extends Controller
     $eusebia->bulk_archive_twelve();
     $eusebia->admin_add_enrollee('twelve');
     $eusebia->mark_requirements_complete('twelve');
+    $eusebia->edit_enrollee('twelve');
     $current_sort  = isset($_GET['sort'])  ? $_GET['sort']  : 'lname';
     $current_order = isset($_GET['order']) ? $_GET['order'] : 'ASC';
     $view = $eusebia->view_twelve($current_sort, $current_order);

@@ -10,16 +10,16 @@
 
 <div class="container-fluid">
 
-    <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-3 grade-page-head">
         <div>
             <h4 class="mb-0 font-weight-bold text-dark">
-                <i class="fas fa-users mr-2" style="color:#0b2b5c;"></i>Grade 11 — Student List
+                <i class="fas fa-users mr-2 text-ink"></i>Grade 11 — Student List
             </h4>
             <small class="text-muted">
                 All enrollees &nbsp;|&nbsp; <?= is_array($view) ? count($view) : 0 ?> student(s)
             </small>
         </div>
-        <div>
+        <div class="grade-page-actions">
             <?php
                 $grade = 'eleven'; $gradeNumber = '11'; $hasCourse = true; $courseLabel = 'Strand';
                 $courseOptions = [
@@ -48,13 +48,13 @@
             ['label'=>'TVL-HE',  'count'=>$he_count,  'hex'=>'#4a8db5','icon'=>'utensils',   'link'=>'heeleven.php?strand=he']
         ];
         foreach ($course_cards as $card): ?>
-        <div class="col-xl col-md-6 mb-4">
+        <div class="col-6 col-md-4 col-xl mb-3">
             <a href="<?= $card['link'] ?>" class="text-decoration-none">
                 <div class="card shadow h-100 py-2" style="border-left: 4px solid <?= $card['hex'] ?>;">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1" style="color:<?= $card['hex'] ?>;"><?= $card['label'] ?></div>
+                                <div class="text-xs font-weight-bold text-uppercase mb-1 text-ink"><?= $card['label'] ?></div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($card['count']) ?></div>
                             </div>
                             <div class="col-auto"><i class="fas fa-<?= $card['icon'] ?> fa-2x" style="color:#c5d5e8;"></i></div>
@@ -71,12 +71,12 @@
 
     <form method="GET" action="admn_eleven.php" class="d-inline ml-3">
         <span class="small font-weight-bold text-gray-600">Sort:</span>
-        <select name="sort" class="custom-select custom-select-sm" onchange="this.form.submit()" style="width:auto;border:none;background:transparent;font-weight:bold;color:#0b2b5c;">
+        <select name="sort" class="custom-select custom-select-sm text-ink" onchange="this.form.submit()" style="width:auto;border:none;background:transparent;font-weight:bold;">
             <option value="lname"  <?= $current_sort=='lname'  ? 'selected':'' ?>>Name</option>
             <option value="age"    <?= $current_sort=='age'    ? 'selected':'' ?>>Age</option>
             <option value="course" <?= $current_sort=='course' ? 'selected':'' ?>>Strand</option>
         </select>
-        <select name="order" class="custom-select custom-select-sm" onchange="this.form.submit()" style="width:auto;border:none;background:transparent;font-weight:bold;color:#0b2b5c;">
+        <select name="order" class="custom-select custom-select-sm text-ink" onchange="this.form.submit()" style="width:auto;border:none;background:transparent;font-weight:bold;">
             <option value="ASC"  <?= $current_order=='ASC'  ? 'selected':'' ?>>↑</option>
             <option value="DESC" <?= $current_order=='DESC' ? 'selected':'' ?>>↓</option>
         </select>

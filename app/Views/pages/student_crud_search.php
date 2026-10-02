@@ -185,8 +185,8 @@
 
                             <div class="row"> 
                                 <div class="col"> 
-                                    <label class="mtop"> Middle Initial </label>
-                                    <input type="text" class="form-control" name="mi" placeholder="Enter middle initial">
+                                    <label class="mtop"> Middle Name </label>
+                                    <input type="text" class="form-control" name="mi" placeholder="Enter middle name">
                                 </div>
 
                                 <div class="col"> 
@@ -286,8 +286,8 @@
 
                             <div class="row"> 
                                 <div class="col"> 
-                                    <label class="mtop"> Middle Initial </label>
-                                    <input type="text" class="form-control" name="mi" placeholder="Enter middle initial">
+                                    <label class="mtop"> Middle Name </label>
+                                    <input type="text" class="form-control" name="mi" placeholder="Enter middle name">
                                 </div>
 
                                 <div class="col"> 

@@ -56,6 +56,7 @@ if (isset($_POST['verify_code'])) {
     if ($result['success']) {
         unset($_SESSION['pending_verify_id']);
         $_SESSION['pending_approval_name'] = trim(($student['fname'] ?? '') . ' ' . ($student['lname'] ?? ''));
+        $_SESSION['pending_approval_contact_type'] = 'email'; // this flow only runs for email verification
         header('Location: pending_approval.php');
         exit();
     } else {

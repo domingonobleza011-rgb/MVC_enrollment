@@ -1,18 +1,20 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
         <link rel="icon" type="image/png" sizes="32x32" href="icons/pwa/icon-96x96.png">
-    <title>EPANHS | Login</title>
+    <title>EPAMNHS | Login</title>
 <link rel="manifest" href="manifest.php">
 <meta name="theme-color" content="#0b2b5c">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- SweetAlert2 (same success/error dialog used across the portal) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +33,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: .8rem 1.5rem;
+            padding: .55rem 1rem;
             gap: .75rem;
         }
 
@@ -56,9 +58,9 @@
 
         .btn-portal {
             border-radius: 40px;
-            padding: 7px 18px;
-            font-weight: 500;
-            font-size: .875rem;
+            padding: 6px 14px;
+            font-weight: 600;
+            font-size: .82rem;
             transition: all .2s;
             text-decoration: none;
             display: inline-flex;
@@ -68,7 +70,6 @@
             background: rgba(255,215,0,.8);
             border: 1px solid #ffd700;
             color: #0b2b5c;
-            font-weight: 600;
             flex-shrink: 0;
         }
 
@@ -80,17 +81,20 @@
 
         @media (max-width: 400px) {
             .btn-portal .btn-label { display: none; }
-            .btn-portal { padding: 8px 11px; border-radius: 50%; }
-            .navbar-inner { padding: .7rem 1rem; }
+            .btn-portal { padding: 9px 11px; margin: -2px 0; border-radius: 50%; }
         }
 
-        /* ── PAGE BODY ── */
+        /* ── PAGE BODY ──
+           The whole page is sized to fit one screen (min-height = viewport, and
+           dvh so mobile browser bars are accounted for). Everything below is
+           compact by default and only gets roomier when the screen has space. */
         body {
             font-family: 'Inter', sans-serif;
             background-image: linear-gradient(rgba(0,0,0,.65), rgba(0,0,0,.65)), url('icons/Documents/eusebia.jpg');
             background-size: cover;
             background-position: center;
-            min-height: calc(100vh - 57px);
+            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
         }
@@ -100,29 +104,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem 1rem;
+            padding: .75rem;
         }
 
         /* ── LOGIN CONTAINER ── */
         .login-container {
-            max-width: 460px;
+            max-width: 420px;
             width: 100%;
             margin: 0 auto;
         }
 
         .header-content {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: .7rem;
         }
 
         .login-logo {
-            width: 88px;
-            height: 88px;
+            width: 56px;
+            height: 56px;
             background: white;
             border-radius: 50%;
-            padding: 11px;
-            box-shadow: 0 8px 20px rgba(0,0,0,.15);
-            margin-bottom: 1rem;
+            padding: 7px;
+            box-shadow: 0 6px 16px rgba(0,0,0,.15);
+            margin-bottom: .45rem;
             transition: transform .2s;
         }
 
@@ -131,36 +135,37 @@
         .system-title {
             font-family: 'Playfair Display', serif;
             font-weight: 700;
-            font-size: clamp(1.3rem, 4vw, 1.75rem);
+            font-size: clamp(1rem, 4.2vw, 1.25rem);
+            line-height: 1.2;
             color: #ffffff;
-            margin-bottom: .25rem;
+            margin-bottom: .15rem;
         }
 
         .sub-title {
             color: rgba(255,215,0,.85);
-            font-size: .88rem;
-            letter-spacing: .5px;
+            font-size: .78rem;
+            letter-spacing: .4px;
         }
 
         /* ── CARD ── */
         .login-card {
             background: white;
             border: none;
-            border-radius: 32px;
-            box-shadow: 0 25px 45px -12px rgba(0,0,0,.3);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,.3);
             overflow: hidden;
         }
 
-        .login-card .card-body { padding: 2rem 1.8rem; }
+        .login-card .card-body { padding: 1.1rem 1.15rem; }
 
         /* ── FORM ── */
         .form-label {
             font-weight: 600;
-            font-size: .82rem;
+            font-size: .72rem;
             text-transform: uppercase;
             letter-spacing: .5px;
             color: #1f3a5f;
-            margin-bottom: .45rem;
+            margin-bottom: .25rem;
             display: block;
         }
 
@@ -169,9 +174,9 @@
             align-items: center;
             background: #f8fafc;
             border: 1.5px solid #e2e8f0;
-            border-radius: 20px;
+            border-radius: 14px;
             transition: all .2s;
-            margin-bottom: 1.2rem;
+            margin-bottom: .7rem;
         }
 
         .input-group-custom:focus-within {
@@ -181,18 +186,18 @@
         }
 
         .input-icon {
-            padding: .75rem 0 .75rem 1.15rem;
+            padding: .5rem 0 .5rem .9rem;
             color: #2a6f9c;
-            font-size: .95rem;
+            font-size: .9rem;
         }
 
         .input-field {
             width: 100%;
-            padding: .75rem 1rem .75rem .5rem;
+            padding: .55rem .85rem .55rem .5rem;
             border: none;
             background: transparent;
             outline: none;
-            font-size: .95rem;
+            font-size: 1rem;              /* 16px: stops iOS from zooming in on focus */
             font-weight: 500;
             color: #1a2c3e;
         }
@@ -205,11 +210,19 @@
             background: #fff5f5;
         }
 
+        /* "Show password" (left) + "Forgot password?" (right) share one row */
+        .login-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            margin: 0 0 .8rem;
+        }
+
         .form-switch-custom {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 1.5rem;
+            gap: 8px;
         }
 
         .form-switch-custom .form-check-input {
@@ -225,17 +238,31 @@
         }
 
         .form-switch-custom label {
-            font-size: .85rem;
+            font-size: .82rem;
             color: #334155;
             cursor: pointer;
+            padding: .6rem 0;               /* bigger tap area ... */
+            margin: -.6rem 0;               /* ... without taking any extra height */
         }
+
+        .forgot-link {
+            font-size: .82rem;
+            font-weight: 500;
+            color: #2a6f9c;
+            text-decoration: none;
+            white-space: nowrap;
+            padding: .6rem .25rem;          /* bigger tap area ... */
+            margin: -.6rem -.25rem;         /* ... without taking any extra height */
+        }
+
+        .forgot-link:hover { color: #1f5a9e; text-decoration: underline; }
 
         /* ── SOCIAL BUTTONS ── */
         .social-divider {
             display: flex;
             align-items: center;
             gap: .75rem;
-            margin: 1.2rem 0;
+            margin: .8rem 0;
         }
 
         .social-divider::before,
@@ -247,7 +274,7 @@
         }
 
         .social-divider span {
-            font-size: .78rem;
+            font-size: .76rem;
             color: #94a3b8;
             font-weight: 500;
             white-space: nowrap;
@@ -259,7 +286,7 @@
             justify-content: center;
             gap: .65rem;
             width: 100%;
-            padding: .72rem 1rem;
+            padding: .6rem 1rem;
             border-radius: 40px;
             font-size: .9rem;
             font-weight: 600;
@@ -267,7 +294,6 @@
             transition: all .2s;
             text-decoration: none;
             border: 1.5px solid;
-            margin-bottom: .75rem;
         }
 
         .btn-google {
@@ -308,13 +334,12 @@
             background: linear-gradient(135deg, #0b2b5c, #1f5a9e);
             border: none;
             border-radius: 40px;
-            padding: .8rem;
+            padding: .65rem;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: .98rem;
             width: 100%;
             color: white;
             transition: all .2s;
-            margin-bottom: 1.2rem;
             cursor: pointer;
         }
 
@@ -350,56 +375,136 @@
             to { transform: rotate(360deg); }
         }
 
+        /* "Don't have an account yet? Create Account" on one line */
+        .register-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: .1rem .4rem;
+            margin-top: .6rem;
+            font-size: .85rem;
+            color: #334155;
+        }
+
         .btn-register-link {
-            background: #eef2ff;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 40px;
-            padding: .7rem;
+            background: none;
+            border: none;
+            padding: .7rem .4rem;           /* comfortable tap target ... */
+            margin: -.3rem 0;               /* ... without taking any extra height */
             font-weight: 600;
-            font-size: .9rem;
-            width: 100%;
-            color: #1f3a5f;
-            transition: all .2s;
+            font-size: .85rem;
+            color: #1f5a9e;
             cursor: pointer;
         }
 
-        .btn-register-link:hover {
-            background: #e2e8f0;
-            transform: translateY(-1px);
-        }
-
-        hr { margin: 1.5rem 0; opacity: .25; }
+        .btn-register-link:hover { color: #0b2b5c; text-decoration: underline; }
 
         /* ── FOOTER ── */
         footer {
             background: #0b1f33;
             color: #cddcec;
-            padding: 2rem 1rem;
+            padding: .55rem 1rem;
             text-align: center;
-            font-size: 0.9rem;
-            border-top-left-radius: 32px;
-            border-top-right-radius: 32px;
-            margin-top: 3rem;
+            font-size: .78rem;
         }
 
-        @media (max-width: 500px) {
-            .login-card .card-body { padding: 1.5rem 1.3rem; }
+        /* ── ROOMIER SIZING, only when the screen actually has the space ──
+           (tall phones, tablets, laptops and desktops)                         */
+        @media (min-height: 760px), (min-width: 576px) and (min-height: 560px) {
+            .page-body { padding: 1.25rem 1rem; }
+            .header-content { margin-bottom: 1rem; }
+            .login-logo { width: 72px; height: 72px; padding: 9px; margin-bottom: .6rem; }
+            .system-title { font-size: clamp(1.15rem, 3vw, 1.5rem); }
+            .sub-title { font-size: .85rem; }
+            .login-card { border-radius: 28px; }
+            .login-card .card-body { padding: 1.5rem 1.6rem; }
+            .input-group-custom { border-radius: 18px; margin-bottom: .9rem; }
+            .input-icon { padding: .65rem 0 .65rem 1.05rem; }
+            .input-field { padding: .65rem 1rem .65rem .5rem; }
+            .login-options { margin-bottom: 1rem; }
+            .btn-login-submit { padding: .75rem; }
+            .social-divider { margin: 1rem 0; }
+            .btn-social { padding: .7rem 1rem; }
+            .register-row { margin-top: .8rem; }
+            footer { padding: .8rem 1rem; }
+        }
+
+        /* ── SMALL PHONES (short screens): drop the least important bits so the
+              form still fits without scrolling ── */
+        @media (max-width: 575.98px) and (max-height: 640px) {
+            .sub-title { display: none; }
+            .login-logo { width: 44px; height: 44px; padding: 5px; margin-bottom: .3rem; }
+            .header-content { margin-bottom: .5rem; }
+        }
+        /* very small phones (e.g. 320x568): tighten further */
+        @media (max-width: 575.98px) and (max-height: 600px) {
+            .login-logo { display: none; }
+            .login-card .card-body { padding: .9rem 1rem; }
+            .input-icon { padding-top: .5rem; padding-bottom: .5rem; }
+            .input-field { padding-top: .5rem; padding-bottom: .5rem; }
+            .social-divider { margin: .6rem 0; }
+            .register-row { margin-top: .4rem; font-size: .8rem; }
+            .btn-register-link { font-size: .8rem; }
+            footer { padding: .4rem 1rem; }
+        }
+
+        /* ── SHORT + WIDE (landscape phones, small laptops): branding on the left,
+              form on the right, so nothing has to scroll ── */
+        @media (min-width: 700px) and (max-height: 760px) {
+            .login-container {
+                max-width: 880px;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+                gap: 2.5rem;
+                align-items: center;
+            }
+            .header-content { margin-bottom: 0; }
+            .system-title { font-size: clamp(1.2rem, 2.6vw, 1.6rem); }
         }
     </style>
 </head>
 <body>
+<?php include(VIEWS_PATH . '/partials/admin_loading_overlay.php'); ?>
+<?php if (($_GET['msg'] ?? '') === 'enrollment_closed') include(VIEWS_PATH . '/partials/enrollment_closed_modal.php'); ?>
 <?php if (($_GET['msg'] ?? '') === 'auth'): ?>
-<script>alert('Please log in to access that page.');</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        icon: 'info',
+        title: 'Login Required',
+        text: 'Please log in to access that page.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0b2b5c'
+    });
+});
+</script>
+<?php endif; ?>
+
+<?php if (!empty($_SESSION['swal'])):
+    $swal = $_SESSION['swal'];
+    unset($_SESSION['swal']);
+?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        icon:  '<?= $swal['icon'] ?>',
+        title: '<?= addslashes($swal['title']) ?>',
+        text:  '<?= addslashes($swal['text'] ?? '') ?>',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#0b2b5c'
+    });
+});
+</script>
 <?php endif; ?>
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar-custom">
     <div class="navbar-inner">
         <a class="navbar-brand" href="index.php">
-            <i class="bi bi-mortarboard-fill" style="flex-shrink:0;"></i>
             <span>EPAMNHS Portal</span>
         </a>
-        <a href="index.php" class="btn-portal">
+        <a href="index.php" class="btn-portal" onclick="showAdminLoading('Returning to main portal...', 'arrow-left'); window.location.href='index.php'; return false;">
             <i class="fas fa-arrow-left"></i>
             <span class="btn-label">Back to Main Portal</span>
         </a>
@@ -419,29 +524,32 @@
         <div class="card login-card">
             <div class="card-body">
                 <?php if (!empty($_SESSION['google_error'])): ?>
-                    <div class="alert alert-danger" style="border-radius:14px; font-size:.88rem;">
+                    <div class="alert alert-danger" style="border-radius:14px; font-size:.85rem; padding:.5rem .75rem; margin-bottom:.75rem;">
                         <i class="fas fa-exclamation-circle me-2"></i>
                         <?= $_SESSION['google_error']; unset($_SESSION['google_error']); ?>
                     </div>
                 <?php endif; ?>
                 <form method="post" id="loginForm">
-                    
-                    <label class="form-label">Email or Phone</label>
+
+                    <label class="form-label" for="loginIdentityField">Email or Phone</label>
                     <div class="input-group-custom">
                         <div class="input-icon"><i class="fas fa-envelope"></i></div>
-                        <input class="input-field" type="text" placeholder="your.email@example.com" name="login_identity" id="loginIdentityField" required autofocus>
+                        <input class="input-field" type="text" placeholder="your.email@example.com" name="login_identity" id="loginIdentityField" required>
                     </div>
                     <div id="loginIdentityError" class="text-danger small mt-1" style="display:none;"></div>
 
-                    <label class="form-label">Password</label>
+                    <label class="form-label" for="myInput">Password</label>
                     <div class="input-group-custom">
                         <div class="input-icon"><i class="fas fa-key"></i></div>
                         <input class="input-field" type="password" placeholder="••••••••" id="myInput" name="password" required>
                     </div>
 
-                    <div class="form-switch-custom">
-                        <input class="form-check-input" type="checkbox" onclick="myFunction()" id="showPasswordSwitch">
-                        <label for="showPasswordSwitch">Show password</label>
+                    <div class="login-options">
+                        <div class="form-switch-custom">
+                            <input class="form-check-input" type="checkbox" onclick="myFunction()" id="showPasswordSwitch">
+                            <label for="showPasswordSwitch">Show password</label>
+                        </div>
+                        <a href="forgot_password.php" class="forgot-link" onclick="showAdminLoading('Loading...', 'key'); window.location.href='forgot_password.php'; return false;">Forgot password?</a>
                     </div>
 
                     <button class="btn-login-submit" type="submit" name="login" id="loginSubmitButton">
@@ -449,12 +557,9 @@
                         <i class="fas fa-sign-in-alt me-2 login-button-icon"></i>
                         <span class="login-button-text">Log in</span>
                     </button>
+                    <input type="hidden" name="login" value="1">
                 </form>
-<div class="text-end mb-3" style="margin-top:-0.8rem;">
-    <a href="forgot_password.php" style="font-size:.85rem; color:#2a6f9c; text-decoration:none; font-weight:500;">
-        <i class="fas fa-question-circle me-1"></i> Forgot Password?
-    </a>
-</div>
+
                 <div class="social-divider"><span>or continue with</span></div>
 
                 <a href="#" class="btn-social btn-google" onclick="handleGoogleLogin(event)">
@@ -467,14 +572,10 @@
                     Continue with Google
                 </a>
 
-               
-                <hr>
 
-                <div class="text-center mb-1">
-                    <p class="mb-2 fw-semibold" style="font-size:.92rem; color:#334155;">Don't have an account yet?</p>
-                    <button class="btn-register-link" onclick="window.location.href='student_registration.php';">
-                        <i class="fas fa-user-plus me-2"></i> Create Account
-                    </button>
+                <div class="register-row">
+                    <span>Don't have an account yet?</span>
+                    <button type="button" class="btn-register-link" onclick="showAdminLoading('Loading registration form...', 'user-plus'); window.location.href='student_registration.php';">Create Account</button>
                 </div>
             </div>
         </div>
@@ -485,10 +586,10 @@
 <footer class="footer-custom">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-md-6 mb-2 mb-md-0 text-md-start">
+            <div class="col-md-6 d-none d-md-block text-md-start">
                 <i class="fas fa-school me-2"></i> Eusebia Paz Arroyo Memorial National High School
             </div>
-            <div class="col-md-6 text-md-end">
+            <div class="col-12 col-md-6 text-md-end">
                 <p class="mb-0"><?= date('Y') ?> EPAMNHS Portal.</p>
             </div>
         </div>
@@ -520,6 +621,12 @@
     const loginIdentityField = document.getElementById("loginIdentityField");
     const loginIdentityError = document.getElementById("loginIdentityError");
 
+    // Desktop: start with the cursor in the first field. On touch devices this is skipped
+    // (it would pop the keyboard up and cover the form the moment the page opens).
+    if (loginIdentityField && window.matchMedia && window.matchMedia("(pointer: fine)").matches) {
+        loginIdentityField.focus();
+    }
+
     if (loginIdentityField && loginIdentityError) {
         loginIdentityField.addEventListener("input", function () {
             loginIdentityError.style.display = "none";
@@ -549,13 +656,16 @@
 
             if (icon) icon.style.display = "none";
             if (text) text.textContent = "Logging in...";
+
+            showAdminLoading('Logging in...', 'sign-in-alt');
         });
     }
     function handleGoogleLogin(e) {
         e.preventDefault();
+        showAdminLoading('Connecting to Google...', 'sign-in-alt');
         var params = new URLSearchParams({
-            client_id:     '240563055427-rjbnika18eosfvn9m7mepdr4uumrr10n.apps.googleusercontent.com',
-            redirect_uri:  'https://eusebianationalhighschool.gt.tc/google_callback.php',
+            client_id:     '240563055427-f8m83d6t72de5ck1leqrvuduenbghoon.apps.googleusercontent.com',
+            redirect_uri:  'https://eusebianationalhighschool.fwh.is/google_callback.php',
             response_type: 'code',
             scope:         'openid email profile',
             prompt:        'select_account'
@@ -565,6 +675,7 @@
 
     function handleFacebookLogin(e) {
         e.preventDefault();
+        showAdminLoading('Connecting to Facebook...', 'sign-in-alt');
         var params = new URLSearchParams({
             client_id:     '1384598473521605',
             redirect_uri:  'https://eusebianationalhighschool.fwh.is/facebook_callback.php',
