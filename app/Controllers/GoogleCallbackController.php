@@ -25,8 +25,9 @@ require_once(MODELS_PATH . '/conn.php');       // provides $conn (PDO)
 require_once(MODELS_PATH . '/main.class.php'); // EUSEBIAClass (has set_userdata)
 
 // ── Your Google OAuth credentials (from Google Cloud Console) ────────────────
-$client_id     = '240563055427-f8m83d6t72de5ck1leqrvuduenbghoon.apps.googleusercontent.com';
-$client_secret = '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'; // <-- add this from Cloud Console
+$cfg           = require __DIR__ . '/../../config.php';
+$client_id     = $cfg['google_client_id'];
+$client_secret = $cfg['google_client_secret'];
 $redirect_uri  = 'https://eusebianationalhighschool.fwh.is/google_callback.php';
 // ─────────────────────────────────────────────────────────────────────────────
 

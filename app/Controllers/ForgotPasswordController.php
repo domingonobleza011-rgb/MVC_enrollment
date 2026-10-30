@@ -190,13 +190,14 @@ if (isset($_POST['send_reset'])) {
             $name       = htmlspecialchars($fname . ' ' . $lname);
 
             // ── PHPMailer via Gmail SMTP ──────────────────────────────────
+            $cfg = require __DIR__ . '/../../config.php';
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();
                 $mail->Host       = 'smtp.gmail.com';
                 $mail->SMTPAuth   = true;
-                $mail->Username   = 'eusebiahighschool@gmail.com';
-                $mail->Password   = 'ilfb ajcy gaiy iybg';
+                $mail->Username   = $cfg['mail_user'];
+                $mail->Password   = $cfg['mail_pass'];
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port       = 587;
 

@@ -6,9 +6,9 @@ class EUSEBIAClass {
 
 //------------------------------------------ DATABASE CONNECTION ----------------------------------------------------
     
-    protected $server = "mysql:host=localhost;dbname=if0_42052089_eusebia";
-    protected $user = "root";
-    protected $pass = "";
+    protected $server;
+    protected $user;
+    protected $pass;
     protected $options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC);
     protected $con;
 
@@ -29,6 +29,10 @@ class EUSEBIAClass {
 
     public function openConn() {
         try {
+            $cfg = require __DIR__ . '/../../config.php';
+            $this->server = $cfg['db_dsn'];
+            $this->user   = $cfg['db_user'];
+            $this->pass   = $cfg['db_pass'];
             $this->con = new PDO($this->server, $this->user, $this->pass, $this->options);
             return $this->con;
         }
@@ -2308,13 +2312,14 @@ private function sendMail($toEmail, $toName, $subject, $htmlBody, $altBody = '',
     require_once __DIR__ . '/../phpmailer/PHPMailer.php';
     require_once __DIR__ . '/../phpmailer/SMTP.php';
  
+    $cfg = require __DIR__ . '/../../config.php';
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
     try {
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'eusebiahighschool@gmail.com';
-        $mail->Password   = 'ilfb ajcy gaiy iybg';
+        $mail->Username   = $cfg['mail_user'];
+        $mail->Password   = $cfg['mail_pass'];
         $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
  

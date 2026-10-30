@@ -1,7 +1,8 @@
 <?php
 	
  
-	$conn = new PDO( 'mysql:host=localhost;dbname=if0_42052089_eusebia', 'root', '');
+	$cfg = require __DIR__ . '/../../config.php';
+	$conn = new PDO($cfg['db_dsn'], $cfg['db_user'], $cfg['db_pass']);
 	if(!$conn){
 		die("Error: Failed to connect to database!");
 	}
