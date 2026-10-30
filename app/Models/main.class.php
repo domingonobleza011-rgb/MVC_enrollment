@@ -27,7 +27,7 @@ class EUSEBIAClass {
         exit;
     }
 
-    public function openConn() {
+    public function openConn(): PDO {
         try {
             $cfg = require __DIR__ . '/../../config.php';
             $this->server = $cfg['db_dsn'];
@@ -38,7 +38,7 @@ class EUSEBIAClass {
         }
 
         catch(PDOException $e) {
-            echo "Datbase Connection Error! ", $e->getMessage();
+            throw $e;
         }
     }
 
