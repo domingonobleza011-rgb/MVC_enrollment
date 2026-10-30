@@ -463,6 +463,7 @@
             .system-title { font-size: clamp(1.2rem, 2.6vw, 1.6rem); }
         }
     </style>
+<?php require_once(HELPERS_PATH . '/turnstile.php'); turnstile_script(); ?>
 </head>
 <body>
 <?php include(VIEWS_PATH . '/partials/admin_loading_overlay.php'); ?>
@@ -551,6 +552,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <a href="forgot_password.php" class="forgot-link" onclick="showAdminLoading('Loading...', 'key'); window.location.href='forgot_password.php'; return false;">Forgot password?</a>
                     </div>
+
+                    <?php require_once(HELPERS_PATH . '/turnstile.php'); turnstile_widget(); ?>
 
                     <button class="btn-login-submit" type="submit" name="login" id="loginSubmitButton">
                         <span class="login-spinner"></span>

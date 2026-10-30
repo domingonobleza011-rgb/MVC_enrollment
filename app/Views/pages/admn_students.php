@@ -149,6 +149,28 @@ html[data-theme="dark"] .btn-cancel-modal:hover {
     padding: 7px 16px;
 }
 .btn-add-admin:hover, .btn-add-admin:focus { color: var(--edb-on-chart); filter: brightness(1.12); }
+
+/* Default (navy) theme: the page banner is dark navy, so the header controls
+   need light text and a translucent light fill to stay visible there. */
+html[data-theme="default"] .plain-banner .total-badge {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.45);
+    color: #ffffff;
+}
+html[data-theme="default"] .plain-banner .btn-back-students {
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.55);
+    color: #ffffff;
+}
+html[data-theme="default"] .plain-banner .btn-back-students:hover {
+    background: rgba(255,255,255,0.22);
+    color: #ffffff;
+}
+html[data-theme="default"] .plain-banner .btn-add-admin {
+    background: #ffd700;
+    color: #0b2b5c;
+}
+html[data-theme="default"] .plain-banner .btn-add-admin:hover { background: #ffe04d; color: #0b2b5c; }
 </style>
 
 <div class="delete-modal-overlay" id="bulkDeleteModalOverlay">

@@ -8,8 +8,14 @@
 
 public function create_student() {
     if(isset($_POST['add_student'])) {
+        require_once(HELPERS_PATH . '/turnstile.php');
+        if (!turnstile_verify()) {
+            $_SESSION['turnstile_error'] = 'Please complete the security check and submit again.';
+            return;
+        }
         // Use ?? '' to prevent "Undefined array key" errors
-        $login_identity = $_POST['login_identity'] ?? ''; 
+        // 09XXXXXXXXX / 9XXXXXXXXX is stored as +639XXXXXXXXX
+        $login_identity = $this->normalize_ph_phone($_POST['login_identity'] ?? '');
         $plain_password = $_POST['password'] ?? '';
         $hashed_password = password_hash($plain_password, PASSWORD_DEFAULT);
 
@@ -25,7 +31,7 @@ public function create_student() {
         $brgy = $_POST['brgy'] ?? '';
         $psgc_code = $_POST['psgc_code'] ?? '';
 
-        $contact = $_POST['contact'] ?? ''; 
+        $contact = $this->normalize_ph_phone($_POST['contact'] ?? '');
         $bdate = $_POST['bdate'] ?? '';
 
         $addedby = $_POST['addedby'] ?? 'Student';
@@ -228,19 +234,21 @@ $this->notif('Student Data Updated', 'success', 'reload');
         // Check both email and phone_number columns so duplicates are caught
         // regardless of whether the user registered with an email or phone number.
         // Also check tbl_admin and tbl_user (staff/teacher accounts) so an
-        // identity already in use by an admin or staff account is rejected too,
-        // not just ones already used by another student.
+        // identity already in use by an admin or staff account is rejected too.
+        // Phone numbers are compared in every spelling (+63 and 09) so the same
+        // number cannot be registered twice.
+        $v = $this->ph_phone_variants($login_identity);
         $stmt = $connection->prepare(
             "SELECT
-                (SELECT COUNT(*) FROM tbl_student WHERE email = ? OR phone_number = ?) +
-                (SELECT COUNT(*) FROM tbl_admin   WHERE email = ? OR phone_number = ?) +
-                (SELECT COUNT(*) FROM tbl_user    WHERE email = ? OR phone_number = ?)
+                (SELECT COUNT(*) FROM tbl_student WHERE email = ? OR phone_number IN (?, ?, ?)) +
+                (SELECT COUNT(*) FROM tbl_admin   WHERE email = ? OR phone_number IN (?, ?, ?)) +
+                (SELECT COUNT(*) FROM tbl_user    WHERE email = ? OR phone_number IN (?, ?, ?))
              AS total"
         );
         $stmt->execute([
-            $login_identity, $login_identity,
-            $login_identity, $login_identity,
-            $login_identity, $login_identity,
+            $login_identity, $v[0], $v[1], $v[2],
+            $login_identity, $v[0], $v[1], $v[2],
+            $login_identity, $v[0], $v[1], $v[2],
         ]);
         $total = (int) $stmt->fetchColumn();
 
@@ -311,7 +319,7 @@ $this->notif('Student Data Updated', 'success', 'reload');
         $age = $_POST['age'];
         $status = $_POST['status'];
         $address = $_POST['address'];
-        $contact = $_POST['contact'];
+        $contact = $this->normalize_ph_phone($_POST['contact']);
 
         if (isset($_POST['profile_update'])) {
            
@@ -563,9 +571,10 @@ $this->notif('Student Data Updated', 'success', 'reload');
         $this->ensure_security_question_columns($connection);
 
         $stmt = $connection->prepare(
-            "SELECT id_student, security_question FROM tbl_student WHERE phone_number = ? LIMIT 1"
+            "SELECT id_student, security_question FROM tbl_student WHERE phone_number IN (?, ?, ?) LIMIT 1"
         );
-        $stmt->execute([$phone]);
+        $pv = $this->ph_phone_variants($phone);
+        $stmt->execute([$pv[0], $pv[1], $pv[2]]);
         $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$student || empty($student['security_question'])) {

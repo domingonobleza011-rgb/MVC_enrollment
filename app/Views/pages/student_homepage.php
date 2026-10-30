@@ -477,6 +477,7 @@ p, .card-text {
             margin-top: 2rem;
         }
     </style>
+<?php include(VIEWS_PATH . '/partials/student_theme.php'); ?>
 </head>
 <body>
 

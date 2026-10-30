@@ -3,12 +3,12 @@
 
 <head>
     <!-- Theme init: runs before CSS/paint so there's no flash of the wrong theme.
-         Stored value is 'light', 'dark', or 'default' (follow system preference). -->
+         Stored value is 'default' (colored theme), 'light', 'dark', or 'system' (follow OS preference). -->
     <script>
         (function () {
             var stored = localStorage.getItem('eusebia_admin_theme') || 'default';
             var effective = stored;
-            if (stored === 'default') {
+            if (stored === 'system') {
                 effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
             }
             document.documentElement.setAttribute('data-theme', effective);
@@ -98,6 +98,24 @@ html, body {
     box-shadow: 0 0 24px rgba(11, 43, 92, 0.07) !important;
     border-right: 1px solid #e3e6ec !important;
     transition: all 0.3s ease;
+}
+
+/* Hide the sidebar's scrollbar (the scroll-down bar/arrow that shows on some
+   devices). The menu still scrolls with wheel / touch / keyboard - only the
+   visible scrollbar is removed. */
+#accordionSidebar,
+#accordionSidebar.sidebar,
+#accordionSidebar.sidebar.toggled {
+    -ms-overflow-style: none;   /* old Edge / IE */
+    scrollbar-width: none;      /* Firefox, modern Chrome/Edge */
+}
+#accordionSidebar::-webkit-scrollbar,
+#accordionSidebar.sidebar::-webkit-scrollbar,
+#accordionSidebar.sidebar.toggled::-webkit-scrollbar {
+    display: none !important;   /* Chrome, Safari, iOS, Android WebView */
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
 }
 
 /* ----- Desktop: pin the sidebar to the viewport instead of the page -----
@@ -260,7 +278,25 @@ html, body {
             color: #1f5a9e;
         }
 
-                   .gs-wrap { position: relative; flex: 0 1 440px; min-width: 0; margin-right: 12px; }
+                   .gs-wrap { position: relative; flex: 0 1 440px; min-width: 0; margin-left: auto; margin-right: 4px; }
+        .gs-wrap .gs-input { padding-right: 52px; }
+        /* Notification bell sits inside the search bar, pinned to its right edge */
+        .gs-wrap { align-self: center; height: 40px; }
+        .gs-wrap .gs-bell { position: absolute !important; right: 6px !important; left: auto !important; top: 50% !important; transform: translateY(-50%) !important; z-index: 2; display: flex; align-items: center; margin: 0; }
+        .gs-wrap .gs-bell .nav-link.dropdown-toggle { padding: 0 8px !important; height: 30px; display: flex !important; align-items: center; color: #64748b !important; }
+        .gs-wrap .gs-bell .nav-link.dropdown-toggle:hover { background: rgba(0,0,0,.06) !important; }
+        html[data-theme="dark"] .gs-wrap .gs-bell .nav-link.dropdown-toggle,
+        html[data-theme="dark"] .gs-wrap .gs-bell .nav-link.dropdown-toggle i { color: rgba(255,255,255,.75) !important; }
+        .gs-wrap .gs-bell .badge-counter { top: 0 !important; margin-top: -2px !important; right: 2px !important; }
+        .gs-wrap .gs-bell .dropdown-menu { margin-top: 14px; }
+        /* Bell is on the white search box: keep it dark (default theme forces topbar icons white) */
+        html[data-theme="default"] .gs-wrap .gs-bell .nav-link,
+        html[data-theme="default"] .gs-wrap .gs-bell .nav-link i,
+        html[data-theme="light"] .gs-wrap .gs-bell .nav-link,
+        html[data-theme="light"] .gs-wrap .gs-bell .nav-link i { color: #334155 !important; }
+        html[data-theme="default"] .gs-wrap .gs-bell .nav-link.dropdown-toggle:hover,
+        html[data-theme="light"] .gs-wrap .gs-bell .nav-link.dropdown-toggle:hover { background: rgba(11,43,92,.08) !important; }
+        html[data-theme="default"] .gs-wrap .gs-input { background: #ffffff; }
         .gs-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; pointer-events: none; }
         .gs-input {
             width: 100%; height: 40px; padding: 0 14px 0 38px;
@@ -755,6 +791,15 @@ html, body {
             border-color: rgba(255,255,255,0.08) !important;
             color: #d7dbe2 !important;
         }
+        html[data-theme="dark"] .card-footer {
+            background-color: #1e2432 !important;
+            border-color: rgba(255,255,255,0.08) !important;
+            color: #d7dbe2 !important;
+        }
+        html[data-theme="dark"] .card-footer .text-muted,
+        html[data-theme="dark"] .card-footer small,
+        html[data-theme="dark"] #entriesCount { color: #aab2c0 !important; }
+        html[data-theme="dark"] #entriesCount strong { color: #e6e9f0 !important; }
         html[data-theme="dark"] .table {
             color: #d7dbe2 !important;
         }
@@ -894,6 +939,216 @@ html, body {
             --edb-chart-rgb:    209, 213, 219;
             --edb-on-chart:     #111827;
         }
+
+        /* ================================================
+           DEFAULT THEME (colored) — matches the landing page (index.php)
+           Navy #0b2b5c / #0f3b7a + gold #ffd700 on the same soft blue-white
+           page background. Distinct from Light (neutral white) and Dark.
+           Content surfaces stay white so tables, forms and modals stay readable.
+           ================================================ */
+        html[data-theme="default"] {
+            --edb-surface:      #ffffff;
+            --edb-canvas:       #eef3fc;
+            --edb-ink:          #1a2c3e;
+            --edb-muted:        #5b6b80;
+            --edb-border:       #dbe4f3;
+            --edb-input-border: #c5d2e6;
+            --edb-shadow:       rgba(11, 43, 92, 0.10);
+            --edb-chart-rgb:    15, 59, 122;
+            --edb-chart-grid:   rgba(11, 43, 92, 0.10);
+            --edb-chart-tick:   #5b6b80;
+            --edb-on-chart:     #ffffff;
+        }
+        html[data-theme="default"] body,
+        html[data-theme="default"] #content-wrapper {
+            background: linear-gradient(145deg, #f8faff 0%, #f0f4fe 100%) fixed !important;
+            color: #1a2c3e;
+        }
+
+        /* Sidebar: navy gradient, white text, gold accents */
+        html[data-theme="default"] #accordionSidebar {
+            background: linear-gradient(180deg, #0b2b5c 0%, #0f3b7a 100%) !important;
+            box-shadow: 4px 0 24px rgba(11, 43, 92, 0.25) !important;
+            border-right: 0 !important;
+        }
+        html[data-theme="default"] #accordionSidebar .sidebar-brand { border-bottom-color: rgba(255,255,255,0.14) !important; }
+        html[data-theme="default"] #accordionSidebar .sidebar-brand::after { background: linear-gradient(90deg, transparent, #ffd700, transparent); }
+        html[data-theme="default"] #accordionSidebar .sidebar-brand .sidebar-brand-text,
+        html[data-theme="default"] #accordionSidebar .sidebar-brand .sidebar-brand-text small { color: #ffffff !important; }
+        html[data-theme="default"] #accordionSidebar .sidebar-brand .sidebar-brand-text small { opacity: .8; }
+        html[data-theme="default"] #accordionSidebar .sidebar-heading { color: #ffd700 !important; }
+        html[data-theme="default"] #accordionSidebar .sidebar-heading::before { background: linear-gradient(90deg, #ffd700, transparent); }
+        html[data-theme="default"] #accordionSidebar hr.sidebar-divider { border-color: rgba(255,255,255,0.14) !important; }
+        html[data-theme="default"] #accordionSidebar .nav-item .nav-link { color: #e2e8f0 !important; }
+        html[data-theme="default"] #accordionSidebar .nav-item .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(255,255,255,0.12) !important;
+        }
+        html[data-theme="default"] #accordionSidebar .nav-item.active .nav-link {
+            color: #ffffff !important;
+            background: rgba(255, 215, 0, 0.16) !important;
+        }
+        html[data-theme="default"] #accordionSidebar .nav-item.active .nav-link::before {
+            background: #ffd700;
+        }
+        html[data-theme="default"] #accordionSidebar .nav-item .nav-link span:first-child i { color: #cddcec; }
+        html[data-theme="default"] #accordionSidebar .nav-item .nav-link:hover span:first-child i,
+        html[data-theme="default"] #accordionSidebar .nav-item.active .nav-link span:first-child i { color: #ffd700; }
+        html[data-theme="default"] #sidebarToggle {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(255,255,255,0.25) !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="default"] #sidebarToggle:hover { background: rgba(255,255,255,0.25) !important; }
+
+        /* Topbar: same navy gradient as the landing page navbar */
+        html[data-theme="default"] .topbar.navbar-light,
+        html[data-theme="default"] nav.navbar.bg-white {
+            background: linear-gradient(135deg, #0b2b5c 0%, #0f3b7a 100%) !important;
+            border-color: transparent !important;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.55) !important;
+            box-shadow: 0 4px 18px rgba(11, 43, 92, 0.25) !important;
+        }
+        html[data-theme="default"] .topbar .nav-link,
+        html[data-theme="default"] .topbar .nav-link i,
+        html[data-theme="default"] .topbar .nav-link .text-gray-800,
+        html[data-theme="default"] .topbar .nav-link .text-gray-600 { color: #ffffff !important; }
+        html[data-theme="default"] .topbar .nav-link.dropdown-toggle:hover { background: rgba(255,255,255,0.16) !important; }
+        html[data-theme="default"] .topbar-divider { border-color: rgba(255,255,255,0.3) !important; }
+        html[data-theme="default"] .topbar .nav-link .badge-counter { background: #ffd700 !important; color: #0b2b5c !important; }
+        /* menus opened from the topbar keep dark-on-white text */
+        html[data-theme="default"] .topbar .dropdown-menu .dropdown-item,
+        html[data-theme="default"] .topbar .dropdown-menu .dropdown-item i { color: #1a2c3e !important; }
+        html[data-theme="default"] .topbar .dropdown-menu .dropdown-item:hover { background: #f0f4fe !important; }
+        html[data-theme="default"] .topbar .dropdown-menu .dropdown-header { color: #5b6b80 !important; }
+
+        /* Dropdown menus + notification list */
+        html[data-theme="default"] .dropdown-menu { border-color: #dbe4f3 !important; box-shadow: 0 10px 28px rgba(11,43,92,0.18) !important; }
+        html[data-theme="default"] .dropdown-item:hover,
+        html[data-theme="default"] .dropdown-item:focus { background: #f0f4fe !important; color: #0b2b5c !important; }
+        html[data-theme="default"] .theme-switch-menu .dropdown-item.active-theme { color: #0b2b5c; background: #fff7cc; }
+        html[data-theme="default"] .dropdown-list {
+            --nt-bg: #ffffff;
+            --nt-line: #e2e8f0;
+            --nt-hover: #f0f4fe;
+            --nt-text: #1a2c3e;
+            --nt-muted: #5b6b80;
+            box-shadow: 0 10px 28px rgba(11, 43, 92, 0.20) !important;
+        }
+
+        /* Headings, text, links */
+        html[data-theme="default"] h1, html[data-theme="default"] h2, html[data-theme="default"] h3,
+        html[data-theme="default"] h4, html[data-theme="default"] h5, html[data-theme="default"] h6,
+        html[data-theme="default"] .text-gray-800, html[data-theme="default"] .text-gray-900 { color: #0b2b5c !important; }
+        html[data-theme="default"] .text-gray-600, html[data-theme="default"] .text-gray-500 { color: #5b6b80 !important; }
+        html[data-theme="default"] a:not(.btn):not(.nav-link):not(.dropdown-item) { color: #0f3b7a; }
+        html[data-theme="default"] a:not(.btn):not(.nav-link):not(.dropdown-item):hover { color: #2563eb; }
+        html[data-theme="default"] .text-primary { color: #0f3b7a !important; }
+
+        /* Cards: white surface, gold top accent, light-blue header */
+        html[data-theme="default"] .card {
+            border: 1px solid #dbe4f3 !important;
+            border-top: 3px solid #ffd700 !important;
+            box-shadow: 0 6px 20px rgba(11, 43, 92, 0.08) !important;
+        }
+        html[data-theme="default"] .card-header {
+            background: #eef3fc !important;
+            border-bottom: 1px solid #dbe4f3 !important;
+            color: #0b2b5c !important;
+        }
+        html[data-theme="default"] .card-header h6,
+        html[data-theme="default"] .card-header .m-0 { color: #0b2b5c !important; }
+
+        /* Tables */
+        html[data-theme="default"] .table thead th {
+            background: #e6eefb !important;
+            color: #0b2b5c !important;
+            border-color: #dbe4f3 !important;
+        }
+        html[data-theme="default"] .table td,
+        html[data-theme="default"] .table th { border-color: #e2e8f0 !important; }
+        html[data-theme="default"] .table-hover tbody tr:hover { background-color: #f3f7ff !important; }
+        html[data-theme="default"] .table-striped tbody tr:nth-of-type(odd) { background-color: #f8faff; }
+
+        /* Forms */
+        html[data-theme="default"] .form-control,
+        html[data-theme="default"] .custom-select {
+            border-color: #c5d2e6;
+            background-color: #ffffff;
+            color: #1a2c3e;
+        }
+        html[data-theme="default"] .form-control:focus,
+        html[data-theme="default"] .custom-select:focus {
+            border-color: #0f3b7a !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.35) !important;
+        }
+        html[data-theme="default"] input[type="checkbox"],
+        html[data-theme="default"] input[type="radio"] { accent-color: #0f3b7a; }
+
+        /* Buttons: navy primary, gold for warnings/highlights */
+        html[data-theme="default"] .btn-primary {
+            background: linear-gradient(135deg, #0b2b5c, #0f3b7a) !important;
+            border-color: transparent !important;
+            color: #fff !important;
+        }
+        html[data-theme="default"] .btn-primary:hover { filter: brightness(1.15); box-shadow: 0 6px 16px rgba(11,43,92,.30); }
+        html[data-theme="default"] .btn-success { background: #16a34a !important; border-color: transparent !important; color: #fff !important; }
+        html[data-theme="default"] .btn-info    { background: #2563eb !important; border-color: transparent !important; color: #fff !important; }
+        html[data-theme="default"] .btn-warning { background: #ffd700 !important; border-color: #ffd700 !important; color: #0b2b5c !important; font-weight: 600; }
+        html[data-theme="default"] .btn-danger  { background: #dc2626 !important; border-color: transparent !important; color: #fff !important; }
+        html[data-theme="default"] .btn-outline-primary { color: #0f3b7a !important; border-color: #0f3b7a !important; background: transparent !important; }
+        html[data-theme="default"] .btn-outline-primary:hover { background: #0f3b7a !important; color: #fff !important; }
+        html[data-theme="default"] .btn-outline-secondary,
+        html[data-theme="default"] .btn-secondary { color: #0b2b5c !important; border-color: #c5d2e6 !important; background: #eef3fc !important; }
+        html[data-theme="default"] .btn-outline-secondary:hover,
+        html[data-theme="default"] .btn-secondary:hover { background: #e2eaf8 !important; }
+        html[data-theme="default"] .plain-page .btn-primary,
+        html[data-theme="default"] .plain-modal .btn-primary {
+            background: linear-gradient(135deg, #0b2b5c, #0f3b7a) !important;
+            border-color: transparent !important;
+            color: #fff !important;
+        }
+
+        /* Badges */
+        html[data-theme="default"] .badge-primary { background: #dbe7fb !important; color: #0b2b5c !important; }
+        html[data-theme="default"] .badge-success { background: #dcfce7 !important; color: #166534 !important; }
+        html[data-theme="default"] .badge-warning { background: #fff3b0 !important; color: #854d0e !important; }
+        html[data-theme="default"] .badge-danger  { background: #fee2e2 !important; color: #991b1b !important; }
+        html[data-theme="default"] .badge-info    { background: #dbeafe !important; color: #1d4ed8 !important; }
+
+        /* Modals: navy header with gold underline */
+        html[data-theme="default"] .modal-content { border: 0 !important; box-shadow: 0 24px 60px rgba(11, 43, 92, 0.35) !important; }
+        html[data-theme="default"] .modal-header,
+        html[data-theme="default"] .plain-modal .modal-header {
+            background: linear-gradient(135deg, #0b2b5c, #0f3b7a) !important;
+            color: #ffffff !important;
+            border-bottom: 3px solid #ffd700 !important;
+        }
+        html[data-theme="default"] .modal-header .modal-title,
+        html[data-theme="default"] .plain-modal .modal-header .modal-title,
+        html[data-theme="default"] .modal-header .close,
+        html[data-theme="default"] .plain-modal .modal-header .close { color: #ffffff !important; opacity: 1; }
+        html[data-theme="default"] .modal-footer { background: #f8faff; border-top-color: #dbe4f3 !important; }
+
+        /* Page banners on "plain" pages */
+        html[data-theme="default"] .plain-page .plain-banner {
+            background: linear-gradient(135deg, #0b2b5c 0%, #0f3b7a 100%);
+            color: #ffffff;
+            border: 0;
+            border-bottom: 3px solid #ffd700;
+            box-shadow: 0 10px 26px rgba(11, 43, 92, 0.25);
+        }
+        html[data-theme="default"] .plain-page .plain-banner h1,
+        html[data-theme="default"] .plain-page .plain-banner h2,
+        html[data-theme="default"] .plain-page .plain-banner h3,
+        html[data-theme="default"] .plain-page .plain-banner h4,
+        html[data-theme="default"] .plain-page .plain-banner h5,
+        html[data-theme="default"] .plain-page .plain-banner h6,
+        html[data-theme="default"] .plain-page .plain-banner small { color: #ffffff !important; }
+
+        /* Scrollbars */
+        html[data-theme="default"] ::-webkit-scrollbar-track { background: #e6eefb; }
+        html[data-theme="default"] ::-webkit-scrollbar-thumb { background: #0f3b7a; border-radius: 8px; }
 
         /* Bootstrap "primary" (SB Admin blue) -> neutral.
            Applies inside .plain-page (whole pages) and .plain-modal (the
@@ -1387,52 +1642,22 @@ html, body {
                         <i class="fa fa-bars"></i>
                     </button>
 
+                    <?php
+                        $pendingData = (isset($eusebia) && method_exists($eusebia, 'get_pending_enrollees'))
+                            ? $eusebia->get_pending_enrollees()
+                            : ['total' => 0, 'items' => []];
+                        $bellTotal = (int) $pendingData['total'] + (int) $msgData['total'];
+                    ?>
+
                    <div class="gs-wrap" id="gsWrap">
                         <i class="fas fa-search gs-icon" aria-hidden="true"></i>
                         <input type="search" id="gsInput" class="gs-input" placeholder="Search name, LRN or email…  ( / )"
                                autocomplete="off" spellcheck="false" role="combobox" aria-label="Search students, accounts and archive"
                                aria-controls="gsPanel" aria-expanded="false" aria-autocomplete="list">
                         <div class="gs-panel" id="gsPanel" role="listbox" hidden></div>
-                    </div>
 
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-
-                        <?php
-                            $pendingData = (isset($eusebia) && method_exists($eusebia, 'get_pending_enrollees'))
-                                ? $eusebia->get_pending_enrollees()
-                                : ['total' => 0, 'items' => []];
-                            $bellTotal = (int) $pendingData['total'] + (int) $msgData['total'];
-                        ?>
-
-                        <!-- Nav Item - Theme Switcher -->
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="themeSwitchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Theme">
-                                <i class="fas fa-circle-half-stroke fa-fw" id="themeSwitchIcon"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in theme-switch-menu"
-                                aria-labelledby="themeSwitchDropdown">
-                                <h6 class="dropdown-header">Theme</h6>
-                                <a class="dropdown-item" href="#" data-theme-choice="light">
-                                    <i class="fas fa-sun"></i> Light
-                                    <i class="fas fa-check ml-auto"></i>
-                                </a>
-                                <a class="dropdown-item" href="#" data-theme-choice="dark">
-                                    <i class="fas fa-moon"></i> Dark
-                                    <i class="fas fa-check ml-auto"></i>
-                                </a>
-                                <a class="dropdown-item" href="#" data-theme-choice="default">
-                                    <i class="fas fa-desktop"></i> Default (System)
-                                    <i class="fas fa-check ml-auto"></i>
-                                </a>
-                            </div>
-                        </li>
-
-                        <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <!-- Nav Item - Pending Enrollment Notification -->
-                        <li class="nav-item dropdown no-arrow mx-1">
+                        <!-- Notifications bell (lives inside the search bar) -->
+                        <div class="dropdown no-arrow gs-bell">
                             <a class="nav-link dropdown-toggle" href="#" id="pendingApprovalsDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-bell fa-fw"></i>
@@ -1478,6 +1703,38 @@ html, body {
                                     </div>
                                     <a class="dropdown-footer" href="admn_messages.php">Open Messages</a>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav">
+
+                        <!-- Nav Item - Theme Switcher -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="themeSwitchDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Theme">
+                                <i class="fas fa-circle-half-stroke fa-fw" id="themeSwitchIcon"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in theme-switch-menu"
+                                aria-labelledby="themeSwitchDropdown">
+                                <h6 class="dropdown-header">Theme</h6>
+                                <a class="dropdown-item" href="#" data-theme-choice="default">
+                                    <i class="fas fa-palette"></i> Default
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
+                                <a class="dropdown-item" href="#" data-theme-choice="light">
+                                    <i class="fas fa-sun"></i> Light
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
+                                <a class="dropdown-item" href="#" data-theme-choice="dark">
+                                    <i class="fas fa-moon"></i> Dark
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
+                                <a class="dropdown-item" href="#" data-theme-choice="system">
+                                    <i class="fas fa-desktop"></i> System
+                                    <i class="fas fa-check ml-auto"></i>
+                                </a>
                             </div>
                         </li>
 

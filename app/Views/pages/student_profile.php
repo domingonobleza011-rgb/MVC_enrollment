@@ -226,6 +226,7 @@
             .info-section { padding: 1rem; }
         }
     </style>
+<?php include(VIEWS_PATH . '/partials/student_theme.php'); ?>
 </head>
 <body>
 
@@ -332,7 +333,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Contact No.</label>
-                            <input class="form-control" type="tel" name="contact" maxlength="11" pattern="[0-9]{11}" value="<?= htmlspecialchars($student['contact']); ?>">
+                            <input class="form-control" type="tel" name="contact" maxlength="11" pattern="[0-9]{11}" value="<?= htmlspecialchars(preg_match('/^(?:\+?63|0)?(9\d{9})$/', preg_replace('/[\s\-()]/', '', (string)$student['contact']), $__m) ? '0' . $__m[1] : $student['contact']); ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">House No.</label>

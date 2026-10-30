@@ -119,7 +119,7 @@ class DocumentAI {
                       "\n\nCompare it against what you read on the documents above and respond with the JSON object only, as instructed.",
         ];
 
-        $model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-2.5-flash';
+        $model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-3.8-flash';
 
         $payload = [
             'systemInstruction' => ['parts' => [['text' => self::buildSystemPrompt()]]],
@@ -130,7 +130,24 @@ class DocumentAI {
             ],
         ];
 
-        $response = self::callGeminiApi($payload, $model);
+        // Try the main model first; if Google is overloaded (429/5xx) or the model name is
+        // unavailable (404), move on to the fallback models from ai_config.php.
+        @set_time_limit(240);
+        $models = [$model];
+        if (defined('GEMINI_FALLBACK_MODELS') && is_array(GEMINI_FALLBACK_MODELS)) {
+            foreach (GEMINI_FALLBACK_MODELS as $fm) {
+                if (is_string($fm) && $fm !== '' && !in_array($fm, $models, true)) $models[] = $fm;
+            }
+        }
+
+        $response = ['success' => false, 'error' => 'No AI model was tried.'];
+        foreach ($models as $i => $tryModel) {
+            $isLast = ($i === count($models) - 1);
+            $response = self::callGeminiApi($payload, $tryModel, $isLast ? 3 : 2);
+            if ($response['success']) { $model = $tryModel; break; }
+            $code = $response['code'] ?? 0;
+            if (!in_array($code, [404, 429, 500, 502, 503, 504], true)) break; // e.g. bad key — fallbacks won't help
+        }
 
         if (!$response['success']) {
             $response['analyzed_at'] = $analyzedAt;
@@ -204,26 +221,39 @@ PROMPT;
     }
 
 
-    private static function callGeminiApi(array $payload, string $model): array {
+    private static function callGeminiApi(array $payload, string $model, int $maxAttempts = 4): array {
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
-                'Content-Type: application/json',
-                'x-goog-api-key: ' . trim(GEMINI_API_KEY),
-            ],
-            CURLOPT_POSTFIELDS     => json_encode($payload),
-            CURLOPT_TIMEOUT        => 90,
-            CURLOPT_CONNECTTIMEOUT => 15,
-        ]);
+        // Google sometimes answers 503 ("high demand") or 429 (rate limit) for a few seconds.
+        // Retry a few times with a growing wait before giving up.
+        $body = false; $curlErr = ''; $httpCode = 0;
 
-        $body = curl_exec($ch);
-        $curlErr = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'x-goog-api-key: ' . trim(GEMINI_API_KEY),
+                ],
+                CURLOPT_POSTFIELDS     => json_encode($payload),
+                CURLOPT_TIMEOUT        => 90,
+                CURLOPT_CONNECTTIMEOUT => 15,
+            ]);
+
+            $body = curl_exec($ch);
+            $curlErr = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            $temporary = ($body !== false && in_array($httpCode, [429, 500, 502, 503, 504], true));
+            if ($temporary && $attempt < $maxAttempts) {
+                sleep(3 * $attempt); // 3s, 6s, 9s
+                continue;
+            }
+            break;
+        }
 
         if ($body === false) {
             return ['success' => false, 'error' => 'Could not reach the AI service: ' . $curlErr .
@@ -244,10 +274,13 @@ PROMPT;
             if ($httpCode === 404) {
                 $msg .= ' (model name not found — check GEMINI_MODEL in app/Models/ai_config.php)';
             }
+            if ($httpCode === 503) {
+                $msg .= ' (Google is overloaded right now — tried ' . $maxAttempts . ' times; press Retry in a minute)';
+            }
             if ($httpCode === 429) {
                 $msg .= ' (free-tier rate limit reached — try again in a bit, or re-analyze this record later)';
             }
-            return ['success' => false, 'error' => 'AI service error: ' . $msg];
+            return ['success' => false, 'code' => $httpCode, 'error' => 'AI service error: ' . $msg];
         }
 
         if (!empty($decoded['promptFeedback']['blockReason'])) {

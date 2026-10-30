@@ -157,6 +157,7 @@
             border-top-left-radius: 32px; border-top-right-radius: 32px;
         }
     </style>
+<?php include(VIEWS_PATH . '/partials/student_theme.php'); ?>
 </head>
 <body>
 

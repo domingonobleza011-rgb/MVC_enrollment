@@ -277,6 +277,7 @@
         .page-body { padding: 2rem 1rem; }
     }
 </style>
+<?php turnstile_script(); ?>
 </head>
 <body>
 <?php include(VIEWS_PATH . '/partials/admin_loading_overlay.php'); ?>
@@ -337,6 +338,7 @@
                                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                                    required>
                         </div>
+                        <?php turnstile_widget(); ?>
                         <button class="btn-submit" type="submit" name="send_reset">
                             <i class="fas fa-paper-plane me-2"></i> Continue
                         </button>
@@ -394,6 +396,7 @@
                                        value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>"
                                        required>
                             </div>
+                            <?php turnstile_widget(); ?>
                             <button class="btn-submit" type="submit" name="phone_lookup">
                                 <i class="fas fa-arrow-right me-2"></i> Continue
                             </button>

@@ -495,6 +495,19 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
 
     <!-- RIGHT (desktop): notifications, then the account menu -->
     <div class="fb-nav-right">
+        <!-- Theme switcher: Default / Light / Dark -->
+        <div class="dropdown">
+            <button class="fb-icon-btn" id="themeSwitchBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Theme" title="Theme">
+                <i class="fas fa-palette" data-theme-icon></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end fb-theme-menu" aria-labelledby="themeSwitchBtn">
+                <li class="fb-theme-title">Theme</li>
+                <li><button type="button" class="dropdown-item" data-theme-choice="default"><i class="fas fa-palette"></i> Default <i class="fas fa-check"></i></button></li>
+                <li><button type="button" class="dropdown-item" data-theme-choice="light"><i class="fas fa-sun"></i> Light <i class="fas fa-check"></i></button></li>
+                <li><button type="button" class="dropdown-item" data-theme-choice="dark"><i class="fas fa-moon"></i> Dark <i class="fas fa-check"></i></button></li>
+            </ul>
+        </div>
+
         <?= render_notif_bell('Desktop', $notif_unread_count, $notif_list) ?>
 
         <div class="dropdown">
@@ -528,6 +541,18 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
 
     <!-- Mobile-only: bell stays visible, hamburger opens the same menu -->
     <div class="fb-mobile-actions">
+        <!-- Theme dropdown (mobile): Default / Light / Dark -->
+        <div class="dropdown">
+            <button class="fb-icon-btn" id="themeSwitchBtnMobile" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Theme" title="Theme">
+                <i class="fas fa-palette" data-theme-icon></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end fb-theme-menu" aria-labelledby="themeSwitchBtnMobile">
+                <li class="fb-theme-title">Theme</li>
+                <li><button type="button" class="dropdown-item" data-theme-choice="default"><i class="fas fa-palette"></i> Default <i class="fas fa-check"></i></button></li>
+                <li><button type="button" class="dropdown-item" data-theme-choice="light"><i class="fas fa-sun"></i> Light <i class="fas fa-check"></i></button></li>
+                <li><button type="button" class="dropdown-item" data-theme-choice="dark"><i class="fas fa-moon"></i> Dark <i class="fas fa-check"></i></button></li>
+            </ul>
+        </div>
         <?= render_notif_bell('Mobile', $notif_unread_count, $notif_list) ?>
         <div class="dropdown">
             <button class="fb-menu-toggle" id="menuToggleBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu" title="Menu">
@@ -593,12 +618,37 @@ function render_notif_bell($idSuffix, $notif_unread_count, $notif_list) {
 
 <script>
     (function () {
-        // Notification bells (desktop + mobile copies) — clear badge and mark read on open
+        // Notification bells (desktop + mobile copies): opening the bell deletes the notifications
+        // it shows. The list stays readable while the panel is open and empties once it closes.
+        var notifsOpened = false;
         document.querySelectorAll('.js-notif-bell').forEach(function (bell) {
             bell.addEventListener('shown.bs.dropdown', function () {
-                var badge = bell.querySelector('.fb-notif-badge');
-                if (badge) badge.remove();
-                fetch('notifications_mark_read.php', { method: 'POST' }).catch(function () {});
+                document.querySelectorAll('.fb-notif-badge').forEach(function (b) { b.remove(); });
+
+                var list = bell.parentElement.querySelector('.js-notif-list');
+                var ids = [];
+                if (list) {
+                    list.querySelectorAll('li[data-notif-id]').forEach(function (li) { ids.push(li.getAttribute('data-notif-id')); });
+                }
+                if (!ids.length) return;
+
+                var body = new URLSearchParams();
+                ids.forEach(function (id) { body.append('ids[]', id); });
+                fetch('notifications_mark_read.php', { method: 'POST', body: body })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) { if (data && data.success) notifsOpened = true; })
+                    .catch(function () {});
+            });
+
+            bell.addEventListener('hidden.bs.dropdown', function () {
+                if (!notifsOpened) return;
+                notifsOpened = false;
+                document.querySelectorAll('.js-notif-list').forEach(function (list) {
+                    list.querySelectorAll('li[data-notif-id]').forEach(function (li) { li.remove(); });
+                    if (!list.querySelector('.fb-notif-empty')) {
+                        list.insertAdjacentHTML('beforeend', '<li class="fb-notif-empty">No notifications yet.</li>');
+                    }
+                });
             });
         });
 

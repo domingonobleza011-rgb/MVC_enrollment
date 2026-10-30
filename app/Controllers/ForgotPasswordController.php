@@ -33,6 +33,17 @@ $email_question = null;
 $email_message  = '';
 $email_message_type = '';
 
+require_once(HELPERS_PATH . '/turnstile.php');
+$turnstile_failed = false;
+if ((isset($_POST['phone_lookup']) || isset($_POST['send_reset'])) && !turnstile_verify()) {
+    $turnstile_failed = true;
+    unset($_POST['phone_lookup'], $_POST['send_reset']);
+    $active_tab = isset($_POST['phone']) ? 'phone' : 'email';
+    $msg = 'Please complete the security check and try again.';
+    if ($active_tab === 'phone') { $phone_message = $msg; $phone_message_type = 'danger'; }
+    else { $message = $msg; $message_type = 'danger'; }
+}
+
 if (isset($_POST['phone_lookup'])) {
     $active_tab = 'phone';
     require_once(MODELS_PATH . '/student.class.php');

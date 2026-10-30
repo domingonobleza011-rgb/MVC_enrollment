@@ -186,44 +186,6 @@
             <i class="fas fa-save mr-2"></i> Save Settings
         </button>
     </form>
-
-    <div class="row">
-        <div class="col-lg-6">
-            <form method="post" enctype="multipart/form-data">
-                <div class="card settings-card mb-4">
-                    <div class="card-header">
-                        <h6 class="m-0 font-weight-bold"><i class="fas fa-stamp mr-2"></i>Approval Certificate — Registrar Details</h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted small" style="max-width:480px;">
-                            This name and signature are printed on the "Certificate of Enrollment Approval" PDF
-                            that gets attached to a student's approval email.
-                        </p>
-                        <div class="form-group">
-                            <label class="small font-weight-bold text-muted mb-1">Registrar Name</label>
-                            <input type="text" name="registrar_name" class="form-control" placeholder="e.g. Juan D. Dela Cruz"
-                                value="<?= htmlspecialchars($registrar_name ?? '') ?>">
-                        </div>
-                        <div class="form-group mb-0">
-                            <label class="small font-weight-bold text-muted mb-1">Signature Image <span class="font-weight-normal">(PNG with transparent background works best)</span></label>
-                            <input type="file" name="registrar_signature" class="form-control-file" accept=".png,.jpg,.jpeg">
-                            <?php if (!empty($registrar_signature_url)): ?>
-                                <div class="mt-2 p-2" style="background:#fff;border:1px solid var(--edb-border);border-radius:8px;display:inline-block;">
-                                    <img src="<?= htmlspecialchars($registrar_signature_url) ?>" alt="Current signature" style="max-height:60px;display:block;">
-                                </div>
-                                <div class="text-muted small mt-1">Current signature on file. Uploading a new file will replace it.</div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <div class="card-body pt-0">
-                        <button type="submit" name="save_registrar_settings" class="btn btn-primary" style="border-radius:10px;padding:8px 24px;">
-                            <i class="fas fa-save mr-2"></i> Save Registrar Details
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <?php if (!empty($_SESSION['swal'])): ?>

@@ -28,10 +28,11 @@ if (($_SERVER['HTTPS'] ?? '') === 'on') {
 // Adjust the domains below if you add new CDNs later.
 header("Content-Security-Policy: " .
     "default-src 'self'; " .
-    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; " .
+    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://challenges.cloudflare.com; " .
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; " .
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
     "img-src 'self' data: https:; " .
-    "connect-src 'self' https://accounts.google.com https://www.facebook.com; " .
+    "connect-src 'self' https://accounts.google.com https://www.facebook.com https://challenges.cloudflare.com; " .
+    "frame-src https://challenges.cloudflare.com; " .
     "frame-ancestors 'none';"
 );

@@ -308,14 +308,14 @@
         });
     </script>
 
-    <!-- Theme switcher: Light / Dark / Default (system) -->
+    <!-- Theme switcher: Default (colored) / Light / Dark / System -->
     <script>
     (function () {
         var STORAGE_KEY = 'eusebia_admin_theme';
 
         function applyEffectiveTheme(pref) {
             var effective = pref;
-            if (pref === 'default') {
+            if (pref === 'system') {
                 effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
             }
             document.documentElement.setAttribute('data-theme', effective);
@@ -324,9 +324,10 @@
             var icon = document.getElementById('themeSwitchIcon');
             if (icon) {
                 icon.className = 'fa-fw ' + (
-                    pref === 'light' ? 'fas fa-sun' :
-                    pref === 'dark'  ? 'fas fa-moon' :
-                                       'fas fa-circle-half-stroke'
+                    pref === 'light'  ? 'fas fa-sun' :
+                    pref === 'dark'   ? 'fas fa-moon' :
+                    pref === 'system' ? 'fas fa-desktop' :
+                                        'fas fa-palette'
                 );
             }
 
@@ -353,8 +354,8 @@
 
             if (window.matchMedia) {
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-                    if ((localStorage.getItem(STORAGE_KEY) || 'default') === 'default') {
-                        applyEffectiveTheme('default');
+                    if (localStorage.getItem(STORAGE_KEY) === 'system') {
+                        applyEffectiveTheme('system');
                     }
                 });
             }

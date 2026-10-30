@@ -6,9 +6,9 @@ class EUSEBIAClass {
 
 //------------------------------------------ DATABASE CONNECTION ----------------------------------------------------
     
-    protected $server = "mysql:host=sql213.infinityfree.com;dbname=if0_42052089_eusebia";
-    protected $user = "if0_42052089";
-    protected $pass = "eusebia011";
+    protected $server = "mysql:host=localhost;dbname=if0_42052089_eusebia";
+    protected $user = "root";
+    protected $pass = "";
     protected $options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC);
     protected $con;
 
@@ -240,8 +240,45 @@ class EUSEBIAClass {
 
     //------------------------------------------ AUTHENTICATION & SESSION HANDLING --------------------------------------------
         //authentication function para sa sa tatlong type ng accounts
+    // ---- Philippine mobile number helpers ---------------------------------
+    // Accepts 09XXXXXXXXX, 9XXXXXXXXX, 639XXXXXXXXX or +639XXXXXXXXX (spaces,
+    // dashes and brackets ignored). Returns the number as +639XXXXXXXXX, or the
+    // trimmed input unchanged when it is not a Philippine mobile number
+    // (e.g. an e-mail address).
+    public function normalize_ph_phone($value) {
+        $value  = trim((string)$value);
+        if (preg_match('/[A-Za-z@]/', $value)) return $value;
+        $digits = preg_replace('/\D+/', '', $value);
+        if (preg_match('/^(?:0|63)?(9\d{9})$/', $digits, $m)) {
+            return '+63' . $m[1];
+        }
+        return $value;
+    }
+
+    // Every spelling of the same mobile number that may be stored in the
+    // database (+63 format and the older 09 format), so lookups keep working
+    // for accounts created before the +63 change. Always returns 3 entries.
+    public function ph_phone_variants($value) {
+        $value = trim((string)$value);
+        $intl  = $this->normalize_ph_phone($value);
+        if (preg_match('/^\+639\d{9}$/', $intl)) {
+            return [$value, $intl, '0' . substr($intl, 3)];
+        }
+        return [$value, $value, $value];
+    }
+
 public function login() {
     if(isset($_POST['login'])) {
+        require_once(HELPERS_PATH . '/turnstile.php');
+        if (!turnstile_verify()) {
+            $_SESSION['swal'] = [
+                'icon'  => 'warning',
+                'title' => 'Verification Failed',
+                'text'  => 'Please complete the security check and try again.'
+            ];
+            header('Location: login.php');
+            exit();
+        }
         $identity = trim($_POST['login_identity']);
         $password_input = $_POST['password'];
 
@@ -264,8 +301,9 @@ public function login() {
 
         // 1. Check ADMIN - Only check EMAIL
         // 1. Check ADMIN - Now checking BOTH Email and Phone
-$stmt = $connection->prepare("SELECT * FROM tbl_admin WHERE email = ? OR phone_number = ?");
-$stmt->execute([$identity, $identity]); // We pass the same input to both '?' placeholders
+$phone_variants = $this->ph_phone_variants($identity);
+$stmt = $connection->prepare("SELECT * FROM tbl_admin WHERE email = ? OR phone_number IN (?, ?, ?)");
+$stmt->execute([$identity, $phone_variants[0], $phone_variants[1], $phone_variants[2]]);
 $user = $stmt->fetch();
 
 if($user && password_verify($password_input, $user['password'])) {
@@ -287,8 +325,8 @@ if($user && password_verify($password_input, $user['password'])) {
 
         // 3. Check STUDENT - Check EMAIL OR PHONE_NUMBER
         // We only use phone_number here because we are sure this table has it.
-        $stmt = $connection->prepare("SELECT * FROM tbl_student WHERE email = ? OR phone_number = ?");
-        $stmt->execute([$identity, $identity]);
+        $stmt = $connection->prepare("SELECT * FROM tbl_student WHERE email = ? OR phone_number IN (?, ?, ?)");
+$stmt->execute([$identity, $phone_variants[0], $phone_variants[1], $phone_variants[2]]);
         $user = $stmt->fetch();
 
         if($user && password_verify($password_input, $user['password'])) {
@@ -494,6 +532,23 @@ public function get_userdata() {
         );
         $stmt->execute([(int)$id_notification, $id_student]);
         $deleted = $stmt->rowCount() > 0;
+        $this->closeConn();
+        return $deleted;
+    }
+
+    // Deletes the given notifications (only ones that belong to this student).
+    // Used when the bell dropdown is opened: what the student just saw is removed.
+    public function delete_notifications($id_student, array $ids) {
+        $ids = array_values(array_filter(array_map('intval', $ids), function ($v) { return $v > 0; }));
+        if (empty($id_student) || empty($ids)) return 0;
+        $connection = $this->openConn();
+        $this->ensure_notifications_table($connection);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $connection->prepare(
+            "DELETE FROM tbl_notifications WHERE id_student = ? AND id_notification IN ($placeholders)"
+        );
+        $stmt->execute(array_merge([$id_student], $ids));
+        $deleted = $stmt->rowCount();
         $this->closeConn();
         return $deleted;
     }
@@ -1973,9 +2028,12 @@ public function mark_requirements_complete($grade) {
         $docsUpdate = ', documents = ?';
         $docsParams[] = json_encode($docsJson);
     }
+    // Student-submitted rows: flag as admin-verified so the table doesn't
+    // re-derive "Incomplete" from the uploaded file count.
+    $noteVal = (is_array($docsJson) && array_key_exists('admin_marked', $docsJson)) ? 'NULL' : "'__verified__'";
 
     $update = $connection->prepare(
-        "UPDATE `{$table}` SET requirements_status = 'Complete', missing_docs_note = NULL,
+        "UPDATE `{$table}` SET requirements_status = 'Complete', missing_docs_note = {$noteVal},
          enrollment_status = 'Approved', reject_reason = NULL{$docsUpdate} WHERE `{$idCol}` = ?"
     );
     $update->execute(array_merge($docsParams, [$id]));
@@ -2113,65 +2171,10 @@ public function delete_seven(){
     }
 }
 /**
- * ================== REGISTRAR SETTINGS (for approval certificates) ==================
- */
-public function get_registrar_name() {
-    return $this->get_setting('registrar_name', '');
-}
-
-public function get_registrar_signature_path() {
-    $rel = $this->get_setting('registrar_signature', '');
-    if (empty($rel)) return null;
-    $abs = __DIR__ . '/../../' . ltrim($rel, '/');
-    return is_file($abs) ? $abs : null;
-}
-
-// Public (browser-facing) URL for the <img> preview on the settings page —
-// same stored relative path, just without resolving/checking it on disk.
-public function get_registrar_signature_url() {
-    $rel = $this->get_setting('registrar_signature', '');
-    return empty($rel) ? null : ('/' . ltrim($rel, '/'));
-}
-
-public function save_registrar_settings() {
-    if (!isset($_POST['save_registrar_settings'])) return;
-
-    $name = trim($_POST['registrar_name'] ?? '');
-    $this->set_setting('registrar_name', $name);
-
-    if (!empty($_FILES['registrar_signature']['name']) && is_uploaded_file($_FILES['registrar_signature']['tmp_name'])) {
-        $allowed = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg'];
-        $ext = strtolower(pathinfo($_FILES['registrar_signature']['name'], PATHINFO_EXTENSION));
-        if (isset($allowed[$ext])) {
-            $destDir = __DIR__ . '/../../uploads/settings';
-            if (!is_dir($destDir)) { @mkdir($destDir, 0755, true); }
-            $destPath = $destDir . '/registrar_signature.' . $ext;
-            // Remove any previous signature file of a different extension.
-            foreach (array_keys($allowed) as $e) {
-                $old = $destDir . '/registrar_signature.' . $e;
-                if ($e !== $ext && is_file($old)) { @unlink($old); }
-            }
-            if (move_uploaded_file($_FILES['registrar_signature']['tmp_name'], $destPath)) {
-                $this->set_setting('registrar_signature', 'uploads/settings/registrar_signature.' . $ext);
-            }
-        }
-    }
-
-    $_SESSION['swal'] = [
-        'icon'  => 'success',
-        'title' => 'Settings Saved',
-        'text'  => 'Registrar details have been updated.'
-    ];
-    header('Location: ' . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-/**
  * ================== APPROVAL CERTIFICATE (PDF) ==================
  * Builds a one-page "Certificate of Enrollment Approval" PDF showing every
- * field the student submitted, plus an APPROVED seal and the registrar's
- * name/signature (from System Settings). Returns raw PDF bytes (string) so
- * the caller can attach it straight to the approval email.
+ * field the student submitted, plus an APPROVED seal. Returns raw PDF bytes
+ * (string) so the caller can attach it straight to the approval email.
  */
 private function build_approval_certificate_pdf($student, $gradeLabel, $courseLabel = null) {
     require_once __DIR__ . '/../fpdf/fpdf.php';
@@ -2296,34 +2299,6 @@ private function build_approval_certificate_pdf($student, $gradeLabel, $courseLa
     $pdf->SetTextColor(30, 30, 30);
     $pdf->SetY($sealY + $sealH);
     $pdf->Ln(14);
-
-    // ---- Registrar signature ----
-    $registrarName = $this->get_registrar_name();
-    $sigPath = $this->get_registrar_signature_path();
-
-    $sigLineY = $pdf->GetY();
-    if ($sigLineY > 255) { $pdf->AddPage(); $sigLineY = $pdf->GetY(); }
-    $lineX1 = 18; $lineX2 = 90;
-
-    if ($sigPath) {
-        $type = strtolower(pathinfo($sigPath, PATHINFO_EXTENSION));
-        $type = $type === 'jpg' ? 'JPG' : strtoupper($type);
-        try {
-            $pdf->Image($sigPath, $lineX1 + 5, $sigLineY - 14, 45, 0, $type);
-        } catch (\Exception $e) { /* skip signature image if unreadable */ }
-    }
-
-    $pdf->SetDrawColor(60, 60, 60);
-    $pdf->SetLineWidth(0.3);
-    $pdf->Line($lineX1, $sigLineY, $lineX2, $sigLineY);
-    $pdf->SetXY($lineX1, $sigLineY + 1.5);
-    $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell($lineX2 - $lineX1, 5, $registrarName !== '' ? strtoupper($registrarName) : '', 0, 2, 'C');
-    $pdf->SetX($lineX1);
-    $pdf->SetFont('Arial', '', 8.5);
-    $pdf->SetTextColor(90, 90, 90);
-    $pdf->Cell($lineX2 - $lineX1, 5, 'School Registrar', 0, 2, 'C');
-    $pdf->SetTextColor(30, 30, 30);
 
     return $pdf->Output('S');
 }

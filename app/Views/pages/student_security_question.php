@@ -253,6 +253,7 @@
             .card-body-custom { padding: 1.5rem; }
         }
     </style>
+<?php include(VIEWS_PATH . '/partials/student_theme.php'); ?>
 </head>
 <body>
 

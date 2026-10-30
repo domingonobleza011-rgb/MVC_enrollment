@@ -11,6 +11,15 @@
  */
 class StudentEnrollmentController extends Controller
 {
+    /** +639XXXXXXXXX / 639XXXXXXXXX / 9XXXXXXXXX -> 09XXXXXXXXX (anything else is returned unchanged). */
+    private static function to_local_phone($v)
+    {
+        $v = trim((string)$v);
+        if (preg_match('/[A-Za-z@]/', $v)) return $v;
+        $d = preg_replace('/\D+/', '', $v);
+        return preg_match('/^(?:0|63)?(9\d{9})$/', $d, $m) ? '0' . $m[1] : $v;
+    }
+
     public function index()
     {
         error_reporting(E_ALL ^ E_WARNING);
@@ -125,6 +134,43 @@ class StudentEnrollmentController extends Controller
 
         // Grade the wizard should pre-select (only when the next level is open)
         $auto_grade = ($next_grade !== null && !empty($grade_status[$next_grade]['available'])) ? $next_grade : null;
+
+        // ---------------------------------------------------------------
+        // Registration data -> enrollment form. The details the student typed
+        // when creating the account (name, sex, birth date, contact, e-mail,
+        // address) are handed to the wizard so Step 2 is pre-filled instead of
+        // asking for them again. Read fresh from tbl_student, not the session.
+        // ---------------------------------------------------------------
+        $registration_prefill = null;
+        try {
+            $reg_stmt = $eusebia->openConn()->prepare("SELECT * FROM tbl_student WHERE id_student = ? LIMIT 1");
+            $reg_stmt->execute([$current_user_id]);
+            $reg = $reg_stmt->fetch(PDO::FETCH_ASSOC);
+            if ($reg) {
+                $address = trim(implode(', ', array_filter([
+                    trim($reg['houseno'] ?? ''),
+                    trim($reg['street'] ?? ''),
+                    trim($reg['brgy'] ?? ''),
+                    trim($reg['municipal'] ?? ''),
+                    trim($reg['province'] ?? ''),
+                    trim($reg['region'] ?? ''),
+                ], function ($v) { return $v !== ''; })));
+                $bdate = (!empty($reg['bdate']) && $reg['bdate'] !== '0000-00-00') ? $reg['bdate'] : '';
+                $registration_prefill = [
+                    'lname'           => $reg['lname'] ?? '',
+                    'fname'           => $reg['fname'] ?? '',
+                    'mi'              => $reg['mi'] ?? '',
+                    'bdate'           => $bdate,
+                    'sex'             => $reg['sex'] ?? '',
+                    'contact'         => self::to_local_phone($reg['contact'] ?? ($reg['phone_number'] ?? '')),
+                    'email'           => $reg['email'] ?? '',
+                    'current_address' => $address,
+                    'perm_address'    => $address,
+                ];
+            }
+        } catch (Exception $e) {
+            $registration_prefill = null;   // never block enrollment over a prefill failure
+        }
 
         $this->view('pages/student_enrollment', get_defined_vars());
     }

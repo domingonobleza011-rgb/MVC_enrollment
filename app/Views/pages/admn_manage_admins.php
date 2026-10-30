@@ -71,6 +71,28 @@ html[data-theme="dark"] .admin-form-body label,
 html[data-theme="dark"] .admin-form-body .form-control { color: #ffffff !important; }
 html[data-theme="dark"] .admin-form-body .form-control::placeholder { color: rgba(255,255,255,0.55) !important; }
 html[data-theme="dark"] .plain-modal .modal-footer .btn-outline-secondary { color: #ffffff !important; border-color: rgba(255,255,255,0.5) !important; }
+
+/* Default (navy) theme: the page banner is dark navy, so the header controls
+   need light text and a translucent light fill to stay visible there. */
+html[data-theme="default"] .plain-banner .total-badge {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.45);
+    color: #ffffff;
+}
+html[data-theme="default"] .plain-banner .btn-back-students {
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.55);
+    color: #ffffff;
+}
+html[data-theme="default"] .plain-banner .btn-back-students:hover {
+    background: rgba(255,255,255,0.22);
+    color: #ffffff;
+}
+html[data-theme="default"] .plain-banner .btn-add-admin {
+    background: #ffd700;
+    color: #0b2b5c;
+}
+html[data-theme="default"] .plain-banner .btn-add-admin:hover { background: #ffe04d; color: #0b2b5c; }
 </style>
 
 <?php $aa = fn($k) => htmlspecialchars($_POST[$k] ?? '', ENT_QUOTES, 'UTF-8'); ?>

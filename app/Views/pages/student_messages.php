@@ -86,6 +86,7 @@
             .sm-card { border-radius: 0; height: calc(100vh - 56px); }
         }
     </style>
+<?php include(VIEWS_PATH . '/partials/student_theme.php'); ?>
 </head>
 <body>
 

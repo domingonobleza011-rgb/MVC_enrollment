@@ -340,6 +340,23 @@ html[data-theme="dark"] .btn-cancel-reject-modal:hover {
 <?php
 
 /* ---- helper: guesses a human document type (PSA, Form 137, etc.) ---- */
+// Student-submitted enrollments need all 4 required documents uploaded.
+// Fewer than REQUIRED_DOC_COUNT => Incomplete (never auto-Complete).
+// Admin-added enrollees keep the status the admin chose.
+if (!defined('REQUIRED_DOC_COUNT')) define('REQUIRED_DOC_COUNT', 4);
+if (!function_exists('resolveRequirementsStatus')) {
+    function resolveRequirementsStatus($row) {
+        $stored = $row['requirements_status'] ?? 'Complete';
+        $docs   = json_decode($row['documents'] ?? '[]', true);
+        if (is_array($docs) && array_key_exists('admin_marked', $docs)) {
+            return $stored ?: 'Complete';
+        }
+        if (($row['missing_docs_note'] ?? '') === '__verified__') return 'Complete';
+        $count = is_array($docs) ? count(array_filter($docs)) : 0;
+        return $count >= REQUIRED_DOC_COUNT ? 'Complete' : 'Incomplete';
+    }
+}
+
 function resolveDocLabel($fileName, $aiDocsByFile, $index) {
     if (isset($aiDocsByFile[$fileName])) {
         $type = $aiDocsByFile[$fileName]['detected_type'] ?? '';
@@ -591,7 +608,7 @@ function renderActions($id_seven, $id_student, $status, $fname, $lname, $mi, $pr
                 <tbody class="text-center">
             <?php if (is_array($view)): foreach ($view as $row):
                 $rStatus   = $row['enrollment_status']   ?? 'Pending';
-                $reqStatus = $row['requirements_status']  ?? 'Complete';
+                $reqStatus = resolveRequirementsStatus($row);
                 $initials  = strtoupper(substr($row['fname'] ?? '', 0, 1) . substr($row['lname'] ?? '', 0, 1));
             ?>
                 <tr>

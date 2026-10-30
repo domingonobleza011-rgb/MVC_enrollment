@@ -156,6 +156,7 @@
             .form-section { padding: 1.1rem 1.25rem; border-radius: 8px; }
         }
     </style>
+<?php include(VIEWS_PATH . '/partials/student_theme.php'); ?>
 </head>
 <body>
 
@@ -344,8 +345,8 @@ include(VIEWS_PATH . '/partials/student_navbar.php');
                                     <option value="Female">Female</option>
                                 </select>
                             </div>
-                            <div class="col-md-3"><label>Age</label><input name="age" type="number" class="form-control" placeholder="Age" required></div>
-                            <div class="col-md-4"><label>Contact Number</label><input name="contact" type="number" class="form-control" placeholder="Contact No." required></div>
+                            <div class="col-md-3"><label>Age</label><input name="age" type="number" class="form-control bg-light" placeholder="Age" readonly required></div>
+                            <div class="col-md-4"><label>Contact Number</label><input name="contact" type="tel" inputmode="numeric" maxlength="13" class="form-control phone-ph" placeholder="09XXXXXXXXX" required></div>
                             <div class="col-md-8"><label>Email Address</label><input name="email" type="email" class="form-control" placeholder="Email Address" required></div>
                             <div class="col-md-6"><label>Current Address</label><textarea name="current_address" class="form-control" rows="2" placeholder="Current Address" required></textarea></div>
                             <div class="col-md-6"><label>Permanent Address</label><textarea name="perm_address" class="form-control" rows="2" placeholder="Permanent Address" required></textarea></div>
@@ -363,7 +364,7 @@ include(VIEWS_PATH . '/partials/student_navbar.php');
                             <div class="col-md-3"><label>Last Name</label><input name="flname" type="text" class="form-control name-only" placeholder="Last Name" pattern="[A-Za-zÀ-ÿ\s\-']+" title="Letters only (no numbers or symbols)" required></div>
                             <div class="col-md-3"><label>First Name</label><input name="ffname" type="text" class="form-control name-only" placeholder="First Name" pattern="[A-Za-zÀ-ÿ\s\-']+" title="Letters only (no numbers or symbols)" required></div>
                             <div class="col-md-3"><label>Middle Name</label><input name="fmi" type="text" class="form-control name-only" placeholder="Middle Name" pattern="[A-Za-zÀ-ÿ\s\-']+" title="Letters only (no numbers or symbols)" required></div>
-                            <div class="col-md-3"><label>Contact Number</label><input name="contact_f" type="text" class="form-control" placeholder="Contact No." required></div>
+                            <div class="col-md-3"><label>Contact Number</label><input name="contact_f" type="tel" inputmode="numeric" maxlength="13" class="form-control phone-ph" placeholder="09XXXXXXXXX" required></div>
                         </div>
                     </div>
 
@@ -373,7 +374,7 @@ include(VIEWS_PATH . '/partials/student_navbar.php');
                             <div class="col-md-3"><label>Last Name</label><input name="mlname" type="text" class="form-control name-only" placeholder="Last Name" pattern="[A-Za-zÀ-ÿ\s\-']+" title="Letters only (no numbers or symbols)" required></div>
                             <div class="col-md-3"><label>First Name</label><input name="mfname" type="text" class="form-control name-only" placeholder="First Name" pattern="[A-Za-zÀ-ÿ\s\-']+" title="Letters only (no numbers or symbols)" required></div>
                             <div class="col-md-3"><label>Middle Name</label><input name="mmi" type="text" class="form-control name-only" placeholder="Middle Name" pattern="[A-Za-zÀ-ÿ\s\-']+" title="Letters only (no numbers or symbols)" required></div>
-                            <div class="col-md-3"><label>Contact Number</label><input name="contact_m" type="text" class="form-control" placeholder="Contact No." required></div>
+                            <div class="col-md-3"><label>Contact Number</label><input name="contact_m" type="tel" inputmode="numeric" maxlength="13" class="form-control phone-ph" placeholder="09XXXXXXXXX" required></div>
                         </div>
                     </div>
                 </div>
@@ -385,9 +386,26 @@ include(VIEWS_PATH . '/partials/student_navbar.php');
                     <div class="form-section">
                         <h6><i class="fas fa-school me-2"></i>Previous Education</h6>
                         <div class="row g-3">
-                            <div class="col-md-8"><input name="lglc" class="form-control" placeholder="Last Grade Level Completed" required></div>
+                            <div class="col-md-8">
+                                <select name="lglc" class="form-select" required>
+                                    <option value="">-- Last Grade Level Completed --</option>
+                                    <option value="Grade 6">Grade 6</option>
+                                    <option value="Grade 7">Grade 7</option>
+                                    <option value="Grade 8">Grade 8</option>
+                                    <option value="Grade 9">Grade 9</option>
+                                    <option value="Grade 10">Grade 10</option>
+                                    <option value="Grade 11">Grade 11</option>
+                                </select>
+                            </div>
                             <div class="col-md-4"><input name="lsa" class="form-control" placeholder="Last School Attended" required></div>
-                            <div class="col-md-8"><input name="lysc" class="form-control" placeholder="Last School Year Completed" required></div>
+                            <div class="col-md-8">
+                                <select name="lysc" class="form-select" required>
+                                    <option value="">-- Last School Year Completed --</option>
+                                    <?php for ($y = (int)date('Y') - 12; $y <= (int)date('Y') + 5; $y++): ?>
+                                    <option value="<?= $y ?>-<?= $y + 1 ?>"><?= $y ?>-<?= $y + 1 ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
                             <div class="col-md-4"><input id="school_id" name="school_id" type="text" class="form-control" placeholder="School ID (Previous)" required></div>
                         </div>
                     </div>
@@ -663,6 +681,74 @@ var REVIEW_SECTIONS = [
     ]}
 ];
 
+// ===== Auto-computed fields: age, school year, previous education =====
+var CONTINUING_LOCKED = false;
+
+// "2026-2027" -> "2027-2028"
+function nextSchoolYear(sy) {
+    var m = /^(\d{4})-(\d{4})$/.exec(sy || '');
+    return m ? (parseInt(m[1], 10) + 1) + '-' + (parseInt(m[2], 10) + 1) : '';
+}
+
+// Make sure a <select> has an option for `val`, then select it.
+function setSelectValue(el, val) {
+    if (!el || !val) return;
+    if (!Array.prototype.some.call(el.options, function(o) { return o.value === val; })) {
+        var opt = document.createElement('option');
+        opt.value = val; opt.textContent = val;
+        el.appendChild(opt);
+    }
+    el.value = val;
+}
+
+// Age is always derived from the date of birth (as of today), never trusted from an old record.
+function updateAgeFromBdate() {
+    var b = document.querySelector('[name="bdate"]');
+    var a = document.querySelector('[name="age"]');
+    if (!b || !a) return;
+    if (!b.value) { a.value = ''; return; }
+    var d = new Date(b.value + 'T00:00:00');
+    if (isNaN(d.getTime())) { a.value = ''; return; }
+    var t = new Date();
+    var age = t.getFullYear() - d.getFullYear();
+    var md = t.getMonth() - d.getMonth();
+    if (md < 0 || (md === 0 && t.getDate() < d.getDate())) age--;
+    a.value = age >= 0 ? age : '';
+}
+(function() {
+    var b = document.querySelector('[name="bdate"]');
+    if (b) { b.addEventListener('input', updateAgeFromBdate); b.addEventListener('change', updateAgeFromBdate); }
+})();
+
+function lockField(el, locked) {
+    if (!el) return;
+    el.readOnly = !!locked;
+    el.classList.toggle('bg-light', !!locked);
+    if (el.tagName === 'SELECT') { el.style.pointerEvents = locked ? 'none' : ''; el.tabIndex = locked ? -1 : 0; }
+}
+
+// Continuing student (has an approved record in the previous grade):
+//  - School Year      -> previous record's school year + 1
+//  - Last Grade Level -> the grade they just completed (their current record)
+//  - Last School Year -> the previous record's school year
+function applyContinuingDefaults(grade, d) {
+    var prevSy = d.sy || '';
+    var syEl   = document.querySelector('[name="sy"]');
+    var lglcEl = document.querySelector('[name="lglc"]');
+    var lyscEl = document.querySelector('[name="lysc"]');
+    if (prevSy) {
+        setSelectValue(syEl, nextSchoolYear(prevSy));
+        setSelectValue(lyscEl, prevSy);
+    }
+    if (lglcEl) setSelectValue(lglcEl, 'Grade ' + (parseInt(grade, 10) - 1));
+    CONTINUING_LOCKED = true;
+    lockField(syEl, true); lockField(lglcEl, true); lockField(lyscEl, true);
+}
+function releaseContinuingLocks() {
+    CONTINUING_LOCKED = false;
+    ['sy', 'lglc', 'lysc'].forEach(function(n) { lockField(document.querySelector('[name="' + n + '"]'), false); });
+}
+
 function clearForm() {
     FIELD_NAMES.forEach(function(n) {
         var el = document.querySelector('[name="' + n + '"]');
@@ -675,6 +761,7 @@ function clearForm() {
     if (lookupInput) lookupInput.value = '';
     document.getElementById('prevGradeTable').value = '';
     document.getElementById('prevGradeId').value = '';
+    releaseContinuingLocks();
 }
 
 (function() {
@@ -696,11 +783,13 @@ function fillFromRecord(d) {
     if (schoolIdTop) schoolIdTop.value = d.school_id || '';
     set('lname', d.lname); set('fname', d.fname); set('mi', d.mi); set('ext', d.ext);
     set('bdate', d.bdate); set('sex', d.sex); set('age', d.age);
-    set('contact', d.contact); set('email', d.email);
+    set('contact', toLocalPhone(d.contact)); set('email', d.email);
     set('current_address', d.current_address); set('perm_address', d.perm_address);
-    set('ffname', d.ffname); set('flname', d.flname); set('fmi', d.fmi); set('contact_f', d.contact_f);
-    set('mfname', d.mfname); set('mlname', d.mlname); set('mmi', d.mmi); set('contact_m', d.contact_m);
-    set('lglc', d.lglc); set('lsa', d.lsa); set('lysc', d.lysc);
+    set('ffname', d.ffname); set('flname', d.flname); set('fmi', d.fmi); set('contact_f', toLocalPhone(d.contact_f));
+    set('mfname', d.mfname); set('mlname', d.mlname); set('mmi', d.mmi); set('contact_m', toLocalPhone(d.contact_m));
+    setSelectValue(document.querySelector('[name="lglc"]'), d.lglc); set('lsa', d.lsa);
+    if (d.lysc) setSelectValue(document.querySelector('[name="lysc"]'), d.lysc);
+    updateAgeFromBdate();
     var courseField = document.querySelector('[name="course"]');
     if (courseField && d.course) courseField.value = d.course;
 
@@ -710,6 +799,38 @@ function fillFromRecord(d) {
     var is4psField = document.querySelector('[name="is_4ps"]');
     if (is4psField) { is4psField.value = d.is_4ps || 'No'; is4psField.dispatchEvent(new Event('change')); }
     set('fourps_id', d.fourps_id);
+}
+
+// Philippine mobile numbers are always shown as 09XXXXXXXXX in this form,
+// whether they came from registration (+639...), an older record, or were typed.
+function toLocalPhone(v) {
+    v = (v || '').toString().trim();
+    if (/[A-Za-z@]/.test(v)) return v;
+    var d = v.replace(/\D+/g, '');
+    var m = d.match(/^(?:0|63)?(9\d{9})$/);
+    return m ? '0' + m[1] : v;
+}
+document.querySelectorAll('.phone-ph').forEach(function(el) {
+    var fix = function() { var c = toLocalPhone(el.value); if (c !== el.value) el.value = c; };
+    el.addEventListener('input', fix);
+    el.addEventListener('blur', fix);
+    el.addEventListener('paste', function() { setTimeout(fix, 0); });
+});
+
+// Details from the student's registration. Fills ONLY fields that are still
+// empty, so it never overwrites an old/transferee record loaded by LRN or a
+// rejected submission being edited.
+var REG_PREFILL = <?= !empty($registration_prefill) ? json_encode($registration_prefill, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) : 'null' ?>;
+function applyRegistrationPrefill() {
+    if (!REG_PREFILL) return;
+    Object.keys(REG_PREFILL).forEach(function(name) {
+        var el = document.querySelector('[name="' + name + '"]');
+        var val = REG_PREFILL[name];
+        if (!el || !val || el.value) return;
+        if (name === 'contact') val = toLocalPhone(val);
+        if (el.tagName === 'SELECT') { setSelectValue(el, val); } else { el.value = val; }
+    });
+    updateAgeFromBdate();
 }
 
 function setCourseSection(tier) {
@@ -744,6 +865,7 @@ function handleStudentType(val) {
         lookup.style.display = 'none';
         fields.style.display = 'block';
         clearForm();
+        applyRegistrationPrefill();
         if (lrnField) { lrnField.readOnly = false; lrnField.value = ''; }
         document.getElementById('studentTypeHidden').value = 'new';
     } else {
@@ -761,6 +883,7 @@ function useContinuingStudent(grade, d) {
     if (typeSelect) typeSelect.value = 'old';
     document.getElementById('studentTypeHidden').value = 'old';
     fillFromRecord(d);
+    applyContinuingDefaults(grade, d);
     document.getElementById('prevGradeTable').value = d.source_table || '';
     document.getElementById('prevGradeId').value = d.source_id || '';
     document.getElementById('identFields').style.display = 'block';
@@ -785,6 +908,7 @@ document.getElementById('gradeLevelSelect').addEventListener('change', function(
         if (typeSelect) typeSelect.value = 'new';
         document.getElementById('studentTypeHidden').value = 'new';
         document.getElementById('identFields').style.display = 'block';
+        applyRegistrationPrefill();
         return;
     }
 
@@ -800,6 +924,7 @@ document.getElementById('gradeLevelSelect').addEventListener('change', function(
         if (lrnField) lrnField.readOnly = false;
         document.getElementById('identFields').style.display = 'block';
     }
+    applyRegistrationPrefill();
 });
 
 document.getElementById('studentTypeSelect').addEventListener('change', function() {
@@ -1086,6 +1211,7 @@ if (editData && editGrade) {
 
     // Overwrite whatever the grade-change handler auto-filled with the
     // student's actual rejected-submission data.
+    releaseContinuingLocks();
     fillFromRecord(editData);
 
     // Preserve this row's own prev_grade_table/prev_grade_id (set on its
@@ -1096,7 +1222,14 @@ if (editData && editGrade) {
 
     if (editData.sy) {
         var syField = document.querySelector('[name="sy"]');
-        if (syField) syField.value = editData.sy;
+        setSelectValue(syField, editData.sy);
+    }
+
+    // Same rules as a fresh enrollment: if the student has an approved record in the
+    // previous grade, School Year / Last Grade Level / Last School Year come from it
+    // (and are locked). Age was already recomputed from the birth date above.
+    if (prevDataByGrade[editGrade]) {
+        applyContinuingDefaults(editGrade, prevDataByGrade[editGrade]);
     }
 
     var submitBtnText = document.getElementById('enrollSubmitBtnText');
@@ -1167,9 +1300,13 @@ showStep(1);
         NAME_FIELDS.forEach(function(n) {
             var key = 'n_' + n;
             if (!(key in data)) return;
+            if (n === 'age') return; // always recomputed from birth date
+            if (CONTINUING_LOCKED && (n === 'sy' || n === 'lglc' || n === 'lysc')) return;
             var el = form.querySelector('[name="' + n + '"]');
-            if (el) el.value = data[key];
+            if (!el) return;
+            if (el.tagName === 'SELECT') setSelectValue(el, data[key]); else el.value = data[key];
         });
+        if (typeof updateAgeFromBdate === 'function') updateAgeFromBdate();
         ['studentTypeSelect', 'lrnLookupInput', 'school_id_top'].forEach(function(id) {
             var key = 'i_' + id;
             if (!(key in data)) return;

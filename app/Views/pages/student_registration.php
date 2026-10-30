@@ -400,6 +400,7 @@ footer {
             }
         }
     </style>
+<?php require_once(HELPERS_PATH . '/turnstile.php'); turnstile_script(); ?>
 </head>
 
 <body>
@@ -556,8 +557,9 @@ footer {
                    class="form-control"
                    id="contact"
                    name="contact"
-                   maxlength="10"
-                   pattern="9[0-9]{9}"
+                   maxlength="11"
+                   pattern="0?9[0-9]{9}"
+                   inputmode="numeric"
                    placeholder="9XXXXXXXXX"
                    required>
         </div>
@@ -648,6 +650,11 @@ footer {
                 <input type="hidden" name="addedby" value="Google">
                 <?php endif; ?>
 
+                <?php require_once(HELPERS_PATH . '/turnstile.php');
+                if (!empty($_SESSION['turnstile_error'])): ?>
+                <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['turnstile_error']); unset($_SESSION['turnstile_error']); ?></div>
+                <?php endif; turnstile_widget(); ?>
+
                 <div class="form-actions">
                     <button class="btn-submit" type="submit" name="add_student" id="submitRegistrationBtn" disabled>
                         <i class="fas fa-paper-plane"></i> Submit Registration
@@ -730,13 +737,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = loginIdentity.closest("form");
 
     // Phone number: numbers only, 11 digits
-    const phonePattern = /^[0-9]{11}$/;
+    const phonePattern = /^\+639[0-9]{9}$/;
+
+    // 09XXXXXXXXX (or 639XXXXXXXXX) is converted to +639XXXXXXXXX automatically
+    function toIntlPhone(v) {
+        var d = v.replace(/[\s\-()]/g, "");
+        if (/^09[0-9]{9}$/.test(d))   return "+63" + d.slice(1);
+        if (/^639[0-9]{9}$/.test(d))  return "+" + d;
+        return v;
+    }
 
     // Email: must contain @ and a valid domain
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     function validateLoginIdentity() {
-        const value = loginIdentity.value.trim();
+        let value = loginIdentity.value.trim();
+        if (!loginIdentity.readOnly) {
+            const converted = toIntlPhone(value);
+            if (converted !== value) { loginIdentity.value = converted; value = converted; }
+        }
 
         // Empty field
         if (value === "") {
@@ -745,13 +764,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // If it contains only numbers, treat it as a phone number
-        if (/^[0-9]+$/.test(value)) {
+        if (/^\+?[0-9]+$/.test(value)) {
             if (phonePattern.test(value)) {
                 loginIdentity.setCustomValidity("");
                 return true;
             } else {
                 loginIdentity.setCustomValidity(
-                    "Phone number must contain exactly 11 digits."
+                    "Enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX)."
                 );
                 return false;
             }
@@ -1156,5 +1175,24 @@ document.addEventListener("DOMContentLoaded", function () {
     })();
 </script>
 <script src="js/pwa.js"></script>
+
+<script>
+// Contact number: the +63 is already shown, so 09XXXXXXXXX / 639XXXXXXXXX / +639XXXXXXXXX
+// typed or pasted here becomes the 10 digits 9XXXXXXXXX (saved as +639XXXXXXXXX).
+document.addEventListener("DOMContentLoaded", function () {
+    var c = document.getElementById("contact");
+    if (!c) return;
+    function fmt() {
+        var d = c.value.replace(/\D+/g, "");
+        if (d.indexOf("63") === 0 && d.length > 10) d = d.slice(2);
+        else if (d.indexOf("0") === 0) d = d.slice(1);
+        c.value = d.slice(0, 10);
+    }
+    c.addEventListener("input", fmt);
+    c.addEventListener("blur", fmt);
+    c.addEventListener("paste", function () { setTimeout(fmt, 0); });
+    fmt();
+});
+</script>
 </body>
 </html>

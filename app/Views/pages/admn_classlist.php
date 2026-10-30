@@ -23,7 +23,10 @@
 
 html[data-theme="light"] #classlistTable,
 html[data-theme="light"] #classlistTable thead th,
-html[data-theme="light"] #classlistTable tbody td {
+html[data-theme="light"] #classlistTable tbody td,
+html[data-theme="default"] #classlistTable,
+html[data-theme="default"] #classlistTable thead th,
+html[data-theme="default"] #classlistTable tbody td {
     color:#000 !important;
 }
 html[data-theme="dark"] #classlistTable,
@@ -45,7 +48,8 @@ html[data-theme="dark"] #classlistTable tbody tr { background:#12161f !important
 html[data-theme="dark"] #classlistTable tbody tr:hover { background:#1a1f2b !important; }
 
 .cl-preview-card .card-footer { background:#f8f9fc; color:#333; border-top:1px solid #000; }
-html[data-theme="light"] .cl-preview-card .card-footer { background:#f8f9fc !important; color:#333 !important; }
+html[data-theme="light"] .cl-preview-card .card-footer,
+html[data-theme="default"] .cl-preview-card .card-footer { background:#f8f9fc !important; color:#333 !important; }
 html[data-theme="dark"] .cl-preview-card .card-footer { background:#1e2432 !important; color:#fff !important; border-top-color:#fff !important; }
 </style>
 <div class="container-fluid plain-page">

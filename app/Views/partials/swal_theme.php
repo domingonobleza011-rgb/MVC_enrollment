@@ -14,6 +14,11 @@
         --sw-confirm-from:#2563eb; --sw-confirm-to:#3b82f6; --sw-cancel-bg:#232a38; --sw-cancel-text:#d7dbe2;
         --sw-input-bg:#232a38; --sw-input-border:rgba(255,255,255,.18); --sw-input-text:#eef0f4; }
 
+    html[data-theme="default"] .swal2-container { --sw-bg:#ffffff; --sw-title:#0b2b5c; --sw-text:#4b5b70; --sw-border:#dbe4f3;
+        --sw-confirm-from:#0b2b5c; --sw-confirm-to:#0f3b7a; --sw-cancel-bg:#eef3fc; --sw-cancel-text:#0b2b5c;
+        --sw-input-bg:#ffffff; --sw-input-border:#c5d2e6; --sw-input-text:#1a2c3e; }
+    html[data-theme="default"] .swal2-popup { border-top: 4px solid #ffd700 !important; }
+
     .swal2-container.swal2-backdrop-show, .swal2-container.swal2-noanimation { background: rgba(10,16,30,.55) !important; backdrop-filter: blur(2px); }
 
     .swal2-popup {
